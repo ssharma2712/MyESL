@@ -49,13 +49,15 @@ sample usage:
 
 # C++ Components
 
+The phylogeny testing pipeline utilizes a set of programs written in C++ to transform inputs and perform individual sparse learning tasks. The individual programs have the following specifications.
+
 ## preprocess:
 
 	parameter 1: response matrix file
 	parameter 2: file containing list of alignment file paths
 	parameter 3: basename of output files
 	optional parameters (must be specified after parameters 1-3):
-		n: "normalize" feature weights by column
+		is: "ignore singletons"
 		ct {N}: ignore mutations observed fewer than {N} times (must be an integer)
 sample usage:
 
