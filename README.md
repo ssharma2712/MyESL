@@ -19,7 +19,7 @@ Usage:
 
 Options:
 
-	required arguments:
+	required positional arguments:
 	  tree_file                       Newick tree file.
 	  alignment_list                  List of FASTA alignment files.
 	optional parameters:
