@@ -17,6 +17,7 @@ Usage:
 
 	python ESL_pipeline.py tree_file.nwk alignment_list.txt [--parameter_name parameter_value] ... [--boolean_option] ...
 
+Options:
 
 	required arguments:
 	  tree_file                       Newick tree file.
