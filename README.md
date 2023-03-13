@@ -1,6 +1,7 @@
 # Setup
 
 	git clone https://github.com/kumarlabgit/ESL ESL
+	cd ESL
 	bash setup.sh
 
 Additionally, the phylogeny testing pipeline requires python>=3.8 to be installed, as well as the following python packages:
