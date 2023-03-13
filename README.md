@@ -44,7 +44,7 @@ Options:
 
 sample usage:
 
-	python3 ESL_pipeline.py sample_files/ESL_test.nwk sample_files/angiosperm_100_sample_alns.txt --output sample_output
+	python ESL_pipeline.py sample_files/ESL_test.nwk sample_files/angiosperm_100_sample_alns.txt --output sample_output
 
 
 # C++ Components
