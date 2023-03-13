@@ -14,6 +14,7 @@ Additionally, the phylogeny testing pipeline requires python>=3.8 to be installe
 The pipeline is implemented as a python script which takes a set of gene alignments and a newick tree with at least one named internal node then, for each named internal node, creates a model predicting the chance that a given sequence descends from that node, and finally applies each predictive model to each input sequence and generates a table of predictive values grouped by gene for each sequence.
 
 Usage:
+
 	python ESL_pipeline.py tree_file.nwk alignment_list.txt [--parameter_name parameter_value] ... [--boolean_option] ...
 
 	required arguments:
