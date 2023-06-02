@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 	//int testVal = processFasta(argv[2]);
 
 	alnData* data = new alnData();
-	
+
 	data->setDelimiter(",");
 
 	if (argc > 4)
@@ -83,6 +83,10 @@ int main(int argc, char *argv[])
 			{
 				data->setDownsampleBalance(true);
 			}
+			if (strcmp(argv[i], "fuzzIndels") == 0)
+			{
+				data->setIndelFuzzing(true);
+			}
 			if (strcmp(argv[i], "useCaching") == 0)
 			{
 				data->setDiskCaching(true);
@@ -93,9 +97,9 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	
+
 	data->initialize(argv[1], argv[2]);
-	
+
 	cout << "Generating group indices file..." <<endl;
 	data->generateGroupIndicesFile(basename);
 	cout << "Generating mapping file..." <<endl;

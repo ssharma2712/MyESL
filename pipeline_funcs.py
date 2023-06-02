@@ -449,6 +449,8 @@ def generate_input_matrices(alnlist_filename, hypothesis_filename_list, args):
 	elif args.downsample_balance:
 		options = "{} {}".format(options.strip(),"db")
 		modified_response = True
+	if args.fuzz_indels:
+		options = "{} {}".format(options.strip(),"fuzzIndels")
 	response_file_list = []
 	group_indices_file_list = []
 	features_file_list = []

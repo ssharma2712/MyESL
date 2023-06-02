@@ -31,6 +31,7 @@ class alnData
 		void setUpsampleBalance(bool upsampleBalance);
 		void setDownsampleBalance(bool downsampleBalance);
 		void setDiskCaching(bool useDiskCache);
+		void setIndelFuzzing(bool indelFuzzing);
 		void balanceSample();
 
 	private:
@@ -41,6 +42,7 @@ class alnData
 		bool upsampleBalance;
 		bool downsampleBalance;
 		bool useDiskCache;
+		bool indelFuzzing;
 		int countThreshold;
 		string currentGene;
 		string delimiter;
@@ -52,7 +54,7 @@ class alnData
 		map<string, float> traits;
 		map<string, string> seqs;
 		map<int, string> featureMap;
-		map<int, vector<int>> features;
+		map<int, vector<float>> features;
 		vector<string> featureCacheFiles;
 
 };

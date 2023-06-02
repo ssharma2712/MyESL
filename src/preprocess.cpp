@@ -78,6 +78,11 @@ void alnData::setDiskCaching(bool useDiskCache)
 	this->useDiskCache = useDiskCache;
 }
 
+void alnData::setIndelFuzzing(bool indelFuzzing)
+{
+	this->indelFuzzing = indelFuzzing;
+}
+
 void alnData::readTraits(string speciesFile)
 {
 	string speciesTrait;
@@ -340,7 +345,7 @@ void alnData::processAln()
 			{
 				if (*baseIter != '-')
 				{
-					vector<int> oneHot;
+					vector<float> oneHot;
 					int featureSum = 0;
 					string featureName = this->currentGene + "_" + to_string(i) + "_" + *baseIter;
 					for (int k = 0; k < numSpecies; k++)
@@ -349,6 +354,8 @@ void alnData::processAln()
 						{
 							oneHot.push_back(1);
 							featureSum += 1;
+						} else if (this->indelFuzzing && this->seqs[this->species[k]][i] == '-') {
+							oneHot.push_back(0.5);
 						} else {
 							oneHot.push_back(0);
 						}
@@ -516,7 +523,7 @@ void alnData::generateFeatureFile(string baseName)
 	int handleIdx = 0;
 	for (int i = 0; i < this->features.size(); i++)
 	{
-		vector<int> oneHot = this->features[i+1];
+		vector<float> oneHot = this->features[i+1];
 //		if (i==0)
 //		{
 //			cout << to_string(oneHot[2]) << endl;

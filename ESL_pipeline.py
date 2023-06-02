@@ -119,6 +119,7 @@ if __name__ == '__main__':
 	parser.add_argument("-o", "--output", help="Output directory.", type=str, default="output")
 	parser.add_argument("--upsample_balance", help="Balance positive and negative response sets by upsampling the underpopulated set.", action='store_true', default=False)
 	parser.add_argument("--downsample_balance", help="Balance positive and negative response sets by downsampling the overpopulated set.", action='store_true', default=False)
+	parser.add_argument("--fuzz_indels", help="Assign indels in variable sites a one-hot value of 0.5 instead of 0.", action='store_true', default=False)
 	parser.add_argument("--ensemble_parts", help="Build gene-wise ensemble models, splitting the set of genes into N partitions for each run.", type=int, default=None)
 	parser.add_argument("--ensemble_coverage", help="Number of ensemble models to build. Each gene will be included in this many individual models.", type=int, default=5)
 	parser.add_argument("--sparsify", help="Iteratively increase sparsity until selected set of genes fits in one partition.", action='store_true', default=False)
