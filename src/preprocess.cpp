@@ -248,27 +248,39 @@ void alnData::readAln(string fastaFileName)
 	if (fastaFile.is_open())
 	{
 		cout << "Processing FASTA file: " << fastaFileName << "..." << endl;
-		string seqid;
+		string seqid = "";
+		string seq;
 		while (getline(fastaFile, line))
 		{
 			trim(line);
 			if (line[0] == '>')
 			{
-				seqid = line.substr(1,string::npos);
-				getline(fastaFile,line);
 				if (this->traits.find(seqid) != this->traits.end())
 				{
-					trim(line);
-					this->seqs[seqid] = line;
-					if (line.length() < seqlen)
+					this->seqs[seqid] = seq;
+					if (seq.length() < seqlen)
 					{
 						cout << "Sequence with ID " << seqid << " in file " << fastaFileName << " has improper length, exiting..." << endl;
 						exit(1);
 					}
-					seqlen = line.length();
+					seqlen = seq.length();
 					tempSpecies.erase(find(tempSpecies.begin(), tempSpecies.end(), seqid));
 				}
+				seqid = line.substr(1,string::npos);
+				seq = "";
+			} else if (seqid.length() > 0) {
+				seq = seq + line;
 			}
+		}
+		if (this->traits.find(seqid) != this->traits.end())
+		{
+			this->seqs[seqid] = seq;
+			if (seq.length() < seqlen)
+			{
+				cout << "Sequence with ID " << seqid << " in file " << fastaFileName << " has improper length, exiting..." << endl;
+				exit(1);
+			}
+			tempSpecies.erase(find(tempSpecies.begin(), tempSpecies.end(), seqid));
 		}
 		fastaFile.close();
 	}

@@ -116,6 +116,8 @@ if __name__ == '__main__':
 	parser.add_argument("--response", help="File containing list of named node/response value pairs.", type=str, default=None)
 	parser.add_argument("-z", "--lambda1", help="Feature sparsity parameter.", type=float, default=0.1)
 	parser.add_argument("-y", "--lambda2", help="Group sparsity parameter.", type=float, default=0.1)
+	parser.add_argument("--no_group_penalty", help="Perform mono-level optimization, ignoring group level sparsity penalties.",
+						action='store_true', default=False)
 	parser.add_argument("-o", "--output", help="Output directory.", type=str, default="output")
 	parser.add_argument("--upsample_balance", help="Balance positive and negative response sets by upsampling the underpopulated set.", action='store_true', default=False)
 	parser.add_argument("--downsample_balance", help="Balance positive and negative response sets by downsampling the overpopulated set.", action='store_true', default=False)
@@ -123,12 +125,14 @@ if __name__ == '__main__':
 	parser.add_argument("--ensemble_parts", help="Build gene-wise ensemble models, splitting the set of genes into N partitions for each run.", type=int, default=None)
 	parser.add_argument("--ensemble_coverage", help="Number of ensemble models to build. Each gene will be included in this many individual models.", type=int, default=5)
 	parser.add_argument("--sparsify", help="Iteratively increase sparsity until selected set of genes fits in one partition.", action='store_true', default=False)
-	parser.add_argument("--method", help="SGLasso type to use. Options are \"logistic\", \"leastr\", or \"ol_leastr\". Defaults to \"leastr\".", type=str, default="leastr")
+	parser.add_argument("--method", help="SGLasso type to use. Options are \"logistic\", \"leastr\", or \"ol_leastr\". Defaults to \"leastr\".", type=str, default="logistic")
 	parser.add_argument("--slep_opts", help="File of tab-separated name-value pairs (one per line) to specify SLEP options.", type=str, default=None)
 	parser.add_argument("--gene_penalties", help="File of penalty values (same order as aln_list) to specify penalty score for each gene.", type=str, default=None)
 	parser.add_argument("--gene_display_limit", help="Limits the number of genes displayed in the generated graph images.", type=int, default=100)
 	parser.add_argument("--gene_display_cutoff", help="Limits genes displayed in the generated graph images to those with sum-of-squares greater than cutoff value.", type=int, default=0.0)
 	args = parser.parse_args()
+	if args.no_group_penalty:
+		args.lambda2 = 0.0000001
 	score_tables = main(args)
 	gene_target = None
 	if args.sparsify and score_tables is not None:

@@ -9,6 +9,21 @@ from matplotlib import colors
 from matplotlib.colors import TwoSlopeNorm
 import numpy as np
 
+def get_roc(labels, predictions):
+	span = float(max(labels) - min(labels))
+	pos_set = [x[1] for x in zip(labels, predictions) if x[0] == max(labels)]
+	neg_set = [x[1] for x in zip(labels, predictions) if x[0] == min(labels)]
+	TPR = []
+	FPR = []
+	for cutoff in [(x * (span / 100)) + min(labels) for x in range(1, 99)]:
+		TPR.append(sum([1.0 for x in pos_set if x >= cutoff]) / len(pos_set))
+		FPR.append(sum([1.0 for x in neg_set if x >= cutoff]) / len(neg_set))
+	print("Accuracy at cutoff = 0:")
+	print("True Positive Rate: {}".format(sum([1.0 for x in pos_set if x >= 0]) / len(pos_set)))
+	print("True Negative Rate: {}".format(sum([1.0 for x in neg_set if x < 0]) / len(neg_set)))
+	print("False Positive Rate: {}".format(sum([1.0 for x in neg_set if x >= 0]) / len(neg_set)))
+	print("False Negative Rate: {}".format(sum([1.0 for x in pos_set if x < 0]) / len(pos_set)))
+	return TPR, FPR
 
 def main(predictions_table, lead_cols=4, response_idx=2, prediction_idx=3, output=None, ssq_threshold=0, gene_limit=100):
 	sample_size = 24
@@ -81,6 +96,10 @@ def main(predictions_table, lead_cols=4, response_idx=2, prediction_idx=3, outpu
 		output = os.path.join(os.path.dirname(predictions_table),"{}.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
 	plt.savefig(output, dpi=DPI, bbox_inches='tight')
 	plt.close()
+	roc = get_roc(data[:,0], data[:,1])
+	roc_output = os.path.join(os.path.dirname(predictions_table),"{}_ROC.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
+	plt.plot(roc[1], roc[0])
+	plt.savefig(roc_output, dpi=DPI, bbox_inches='tight')
 	return output
 
 	
