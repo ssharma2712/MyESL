@@ -406,21 +406,21 @@ def generate_hypothesis_set(args):
 	hypothesis_file_list = []
 	slep_opts_file_list = []
 	for nodename in responses.keys():
-		with open("{}_hypothesis.txt".format(nodename), 'w') as file:
+		with open("{}_{}_hypothesis.txt".format(nodename, args.output), 'w') as file:
 			for taxa in taxa_list:
 				if responses[nodename][taxa] not in [0, "0"]:
 					file.write("{}\t{}\n".format(taxa, responses[nodename][taxa]))
-		hypothesis_file_list += ["{}_hypothesis.txt".format(nodename)]
+		hypothesis_file_list += ["{}_{}_hypothesis.txt".format(nodename, args.output)]
 		if slep_sample_balance:
-			slep_opts_file_list += ["{}_slep_opts.txt".format(nodename)]
-			with open("{}_slep_opts.txt".format(nodename), 'w') as opts_file:
+			slep_opts_file_list += ["{}_{}_slep_opts.txt".format(nodename, args.output)]
+			with open("{}_{}_slep_opts.txt".format(nodename, args.output), 'w') as opts_file:
 				if args.slep_opts is not None:
 					with open(args.slep_opts, 'r') as base_opts_file:
 						for line in base_opts_file:
 							opts_file.write(line)
 				# ratio = sum([1.0 for x in responses[nodename].values() if x == 1])/sum([1.0 for x in responses[nodename].values() if x == -1])
-				opts_file.write("{}_sweights.txt\n".format(nodename))
-				with open("{}_sweights.txt".format(nodename), 'w') as sweights_file:
+				opts_file.write("{}_{}_sweights.txt\n".format(nodename, args.output))
+				with open("{}_{}_sweights.txt".format(nodename, args.output), 'w') as sweights_file:
 					sweights_file.write("{}\n".format(sum([1.0 for x in responses[nodename].values() if int(x) == 1])/sum([1.0 for x in responses[nodename].values() if int(x) == -1])))
 					sweights_file.write("{}\n".format(1.0))
 		else:

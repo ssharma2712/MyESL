@@ -2,8 +2,10 @@ import os
 import argparse
 import shutil
 import math
+import statistics
 import copy
 import pipeline_funcs as pf
+import pandas
 import gene_contribution_visualizer as gcv
 
 
@@ -97,7 +99,7 @@ def main(args):
 		for file in gcv_files:
 			if os.path.dirname(file)!=os.path.normpath(args.output):
 				shutil.move(file, args.output)
-		return None
+		return hypothesis_file_list
 
 
 if __name__ == '__main__':
@@ -116,6 +118,8 @@ if __name__ == '__main__':
 	parser.add_argument("--response", help="File containing list of named node/response value pairs.", type=str, default=None)
 	parser.add_argument("-z", "--lambda1", help="Feature sparsity parameter.", type=float, default=0.1)
 	parser.add_argument("-y", "--lambda2", help="Group sparsity parameter.", type=float, default=0.1)
+	parser.add_argument("--grid_z", help="Grid search sparsity parameter interval specified as 'min,max,steps'", type=str, default=None)
+	parser.add_argument("--grid_y", help="Grid search group sparsity parameter interval specified as 'min,max,steps'", type=str, default=None)
 	parser.add_argument("--no_group_penalty", help="Perform mono-level optimization, ignoring group level sparsity penalties.",
 						action='store_true', default=False)
 	parser.add_argument("-o", "--output", help="Output directory.", type=str, default="output")
@@ -133,7 +137,89 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	if args.no_group_penalty:
 		args.lambda2 = 0.0000001
-	score_tables = main(args)
+	if (args.grid_z is None and args.grid_y is not None) or (args.grid_y is None and args.grid_z is not None):
+		raise Exception("Only one grid search parameter specified, --grid_z and --grid_y must be specified together.")
+	elif args.grid_z is not None and args.grid_y is not None:
+		args_original = copy.deepcopy(args)
+		output_folder = args.output
+		hypothesis_file_list = []
+		# for x in args.grid_z.strip().split(','):
+		# 	print(x)
+		# 	print(float(x))
+		[z_min, z_max, z_steps] = [float(x) for x in args.grid_z.strip().split(',')]
+		z_interval = (z_max - z_min) / z_steps
+		z_list = [z_min + (x * z_interval) for x in range(0, int(z_steps) + 1)]
+		[y_min, y_max, y_steps] = [float(x) for x in args.grid_y.split(',')]
+		y_interval = (y_max - y_min) / y_steps
+		y_list = [y_min + (x * y_interval) for x in range(0, int(y_steps) + 1)]
+		[z_count, y_count] = [0, 0]
+		os.mkdir(args_original.output)
+		for lambda1 in z_list:
+			for lambda2 in y_list:
+				# Add wait/check loop here for multiprocessing
+				args = copy.deepcopy(args_original)
+				args.lambda1 = lambda1
+				args.lambda2 = lambda2
+				args.output = args_original.output + "_{}_{}".format(z_count, y_count % len(y_list))
+				hypothesis_file_list += main(args)
+				shutil.move(args.output, args_original.output)
+				y_count += 1
+			z_count += 1
+		pss_vals = {}
+		gss_vals = {}
+		gene_predictions = []
+		hypothesis_list = list(set(["_".join(x.replace("_" + args_original.output, "").split("_")[0:-3]) for x in hypothesis_file_list]))
+		for hypothesis in hypothesis_list:
+			for z_ind in range(0, len(z_list)):
+				for y_ind in range(0, len(y_list)):
+					pass
+					# Parse GSS file into GSS vals
+					with open(os.path.join(args_original.output, args_original.output + "_{}_{}".format(z_ind, y_ind), "{}_{}_{}_{}_GSS.txt".format(hypothesis, args_original.output, z_ind, y_ind)), 'r') as gss_file:
+						for line in gss_file:
+							data = line.strip().split('\t')
+							if data[0] == "Gene":
+								continue
+							if data[0] in gss_vals:
+								gss_vals[data[0]].update({"{}_{}".format(z_ind, y_ind): data[1]})
+							else:
+								gss_vals[data[0]] = {"{}_{}".format(z_ind, y_ind): data[1]}
+					# Parse PSS file into PSS vals
+					with open(os.path.join(args_original.output, args_original.output + "_{}_{}".format(z_ind, y_ind), "{}_{}_{}_{}_PSS.txt".format(hypothesis, args_original.output, z_ind, y_ind)), 'r') as pss_file:
+						for line in pss_file:
+							data = line.strip().split('\t')
+							if data[0] == "Position Name":
+								continue
+							if data[0] in pss_vals:
+								pss_vals[data[0]].update({"{}_{}".format(z_ind, y_ind): data[1]})
+							else:
+								pss_vals[data[0]] = {"{}_{}".format(z_ind, y_ind): data[1]}
+					# Parse gene_predictions files
+					gene_predictions.append(pandas.read_csv(os.path.join(args_original.output, args_original.output + "_{}_{}".format(z_ind, y_ind), "{}_{}_{}_{}_gene_predictions.txt".format(hypothesis, args_original.output, z_ind, y_ind)), delim_whitespace=True, index_col=0))
+			# Write aggregated GSS file
+			with open(os.path.join(args_original.output, "{}_GSS_median.txt".format(hypothesis)), 'w') as file:
+				for gene in gss_vals.keys():
+					file.write("{}\t{}\n".format(gene, statistics.median([float(x) for x in gss_vals[gene].values() if x != 0])))
+			# Write aggregated PSS file
+			with open(os.path.join(args_original.output, "{}_PSS_median.txt".format(hypothesis)), 'w') as file:
+				for pos in pss_vals.keys():
+					file.write("{}\t{}\n".format(pos, statistics.median([float(x) for x in pss_vals[pos].values() if x != 0])))
+			# Write aggregated gene_predictions file
+			with open(os.path.join(args_original.output, "{}_GCS_median.txt".format(hypothesis)), 'w') as file:
+				file.write("SeqID\t{}\n".format("\t".join([gene for gene in gene_predictions[0].columns])))
+				for species in gene_predictions[0].index:
+					file.write("{}\t".format(species))
+					for gene in gene_predictions[0].columns:
+						if gene in ["SeqID", "Prediction", "Intercept"]:
+							continue
+						GCS_list = [x[gene][species] for x in gene_predictions if x[gene][species] != 0]
+						if len(GCS_list) == 0:
+							GCS_list = [0]
+						file.write("{}\t".format(statistics.median(GCS_list)))
+					file.write("\n")
+			gcv.gcv_median(os.path.join(args_original.output, "{}_GCS_median.txt".format(hypothesis)), gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff)
+
+	else:
+		score_tables = main(args)
 	gene_target = None
 	if args.sparsify and score_tables is not None:
 		args_original = copy.deepcopy(args)

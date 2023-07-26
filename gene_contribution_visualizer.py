@@ -102,7 +102,85 @@ def main(predictions_table, lead_cols=4, response_idx=2, prediction_idx=3, outpu
 	plt.savefig(roc_output, dpi=DPI, bbox_inches='tight')
 	return output
 
-	
+
+def gcv_median(predictions_table, lead_cols=2, response_idx=2, prediction_idx=3, output=None, ssq_threshold=0, gene_limit=100):
+	sample_size = 24
+	sample_size = None
+	with open(predictions_table, 'r') as file:
+		header = file.readline().split("\t")
+		num_cols = len(header)
+		file.seek(0)
+		if sample_size is None:
+			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None)
+		else:
+			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None, usecols=range(0, lead_cols + sample_size))
+			header = header[0: lead_cols + sample_size]
+		seqid_list = [(val)[0] for val in data]
+		data = np.asarray([list(val)[1:] for val in data], dtype="float")
+	num_rows, num_cols = data.shape
+	print("\nRows: {}\nCols: {}\n".format(num_rows, num_cols))
+	#data = np.random.rand(10, 10) * 2 - 1
+
+
+	# Sort columns by sum of contributions
+	ssq_scores = list(zip(range(1, num_cols), [np.sum(np.nan_to_num(gene_col)**2) for gene_col in data.transpose()[1:]], header[2:]))
+	ssq_scores.sort(key=lambda tup: tup[1], reverse=True)
+	if ssq_threshold > 0:
+		ssq_scores = [val for val in ssq_scores if val[1] >= ssq_threshold]
+	sum_scores = list(zip(range(1, num_cols), [np.sum(gene_col) for gene_col in data.transpose()[1:]], header[2:]))
+	sum_scores.sort(key=lambda tup: tup[1], reverse=True)
+	data = data[:, list(range(0, 1)) + [val[0] for val in ssq_scores[0:gene_limit]]]
+	header = header[0:2] + [val[2] for val in ssq_scores[0:gene_limit]]
+
+
+	# Sort rows by ground truth and predicted value
+	sorted_rows = list(zip(range(0, num_rows), data[:, 0], data[:, 1]))
+	sorted_rows.sort(key=lambda tup: (tup[1]), reverse=True)
+	data = data[[val[0] for val in sorted_rows]]
+	seqid_list = [seqid_list[val[0]] for val in sorted_rows]
+
+	# Reset dimensions if truncation has occurred.
+	num_rows, num_cols = data.shape
+
+	# draw gridlines
+	xtick_width = 20
+	ytick_width = 20
+	#fig, ax = plt.subplots()
+	fig, ax = plt.subplots(figsize=(num_cols * 0.1, num_rows * 0.1))
+	#fig.set_size_inches()
+	label_size = 3
+	cell_label_size = 2.0
+	DPI = 600
+	ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=0.2)
+	# Make red-yellow-green color map with NaN=blue
+	cmap = copy.copy(mpl.cm.get_cmap("RdYlGn"))
+	cmap.set_bad(color='lightskyblue')
+	# Apply color map to first three columns, and then separately to the rest of the columns
+	ax.imshow(data[:, 0:1], cmap=cmap, norm=TwoSlopeNorm(0), extent=(0, (lead_cols - 1) * xtick_width, num_rows * ytick_width, 0))
+	ax.imshow(data[:, 1:], cmap=cmap, norm=TwoSlopeNorm(0), extent=((lead_cols - 1)*xtick_width, num_cols*xtick_width, num_rows*ytick_width, 0))
+	#ax.set_xticks(np.arange(-.5, 100, 10));
+	ax.set_xticks(np.arange(0, num_cols * xtick_width, xtick_width));
+	ax.set_xticklabels(header[1:], rotation=90, ha='left', size=label_size)
+	#ax.set_yticks(np.arange(-.5, 10, 1));
+	ax.set_yticks(np.arange(0, num_rows * ytick_width, ytick_width));
+	ax.set_yticklabels(seqid_list, va="top", size=label_size)
+	ax.set_xlabel('Alignment Names', fontsize=label_size*1.25)
+	ax.set_ylabel('Sequence IDs', fontsize=label_size*1.25)
+	ax.set_title('Group Contribution Weights', fontsize=label_size*1.75)
+	for (i, j), z in np.ndenumerate(data):
+		ax.text((j+0.5) * xtick_width, (i+0.5)*ytick_width, '{:0.2f}'.format(z), ha='center', va='center', size=cell_label_size)
+
+	if output is None:
+		output = os.path.join(os.path.dirname(predictions_table),"{}.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
+	plt.savefig(output, dpi=DPI, bbox_inches='tight')
+	plt.close()
+	# roc = get_roc(data[:,0], data[:,1])
+	# roc_output = os.path.join(os.path.dirname(predictions_table),"{}_ROC.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
+	# plt.plot(roc[1], roc[0])
+	# plt.savefig(roc_output, dpi=DPI, bbox_inches='tight')
+	return output
+
+
 def merge_predictions(file_list, output_filename=None):
 	seqid_list = None
 	data = {}
