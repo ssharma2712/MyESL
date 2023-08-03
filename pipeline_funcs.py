@@ -601,7 +601,7 @@ def calculate_position_stats(aln_filename, hypothesis_filename):
 	return {"mic": mic, "entropy": entropy}
 
 
-def run_esl(features_filename_list, groups_filename_list, response_filename_list, field_filename_list, sparsity, group_sparsity, method, slep_opts_filename_list):
+def run_esl(features_filename_list, groups_filename_list, response_filename_list, field_filename_list, sparsity, group_sparsity, method, slep_opts_filename_list, z_ind = None, y_ind = None):
 	if method == "leastr":
 		method = "sg_lasso_leastr"
 	elif method == "logistic":
@@ -616,7 +616,10 @@ def run_esl(features_filename_list, groups_filename_list, response_filename_list
 	esl_exe = os.path.join(os.getcwd(), "bin", method)
 	# Run sg_lasso for each response file in response_filename_list
 	for response_filename, features_filename, groups_filename, field_filename, slep_opts_filename in zip(response_filename_list, features_filename_list, groups_filename_list, field_filename_list, slep_opts_filename_list):
-		basename = str(os.path.splitext(os.path.basename(response_filename))[0]).replace("response_","")
+		if z_ind is None or y_ind is None:
+			basename = str(os.path.splitext(os.path.basename(response_filename))[0]).replace("response_","")
+		else:
+			basename = str(os.path.splitext(os.path.basename(response_filename))[0]).replace("response_", "") + "_{}_{}".format(z_ind, y_ind)
 		if slep_opts_filename is None:
 			esl_cmd = "{} -f {} -z {} -y {} -n {} -r {} -w {}".format(esl_exe, features_filename, sparsity, group_sparsity, groups_filename, response_filename, basename + "_out_feature_weights")
 		else:
@@ -631,7 +634,9 @@ def run_esl(features_filename_list, groups_filename_list, response_filename_list
 
 def process_weights(weights_file_list, hypothesis_file_list, groups_filename_list, features_filename_list, gene_list, HSS, missing_seqs, group_list):
 	for (weights_filename, hypothesis_filename, groups_filename, features_filename) in zip(weights_file_list, hypothesis_file_list, groups_filename_list, features_filename_list):
-		generate_gene_prediction_table(weights_filename, hypothesis_filename, groups_filename, features_filename, hypothesis_filename.replace("_hypothesis.txt", "_gene_predictions.txt"), gene_list, missing_seqs, group_list, groups_filename.replace("group_indices_", "field_"))
+		# outname = hypothesis_filename.replace("_hypothesis.txt", "_gene_predictions.txt")
+		outname = weights_filename.replace("_hypothesis", "").replace("_out_feature_weights.xml", "_gene_predictions.txt")
+		generate_gene_prediction_table(weights_filename, hypothesis_filename, groups_filename, features_filename, outname, gene_list, missing_seqs, group_list, groups_filename.replace("group_indices_", "field_"))
 		total_significance = generate_mapped_weights_file(weights_filename, groups_filename.replace("group_indices_", "feature_mapping_"))
 		HSS[hypothesis_filename] = HSS.get(hypothesis_filename, 0) + total_significance
 
@@ -643,7 +648,8 @@ def generate_mapped_weights_file(weights_filename, feature_map_filename):
 	model = xml_model_to_dict(weights_filename)
 	feature_map = {}
 	pos_stats = {}
-	output_filename = str(weights_filename).replace("_hypothesis_out_feature_weights.xml", "_mapped_feature_weights.txt")
+	# output_filename = str(weights_filename).replace("_hypothesis_out_feature_weights.xml", "_mapped_feature_weights.txt")
+	output_filename = str(weights_filename).replace("_out_feature_weights.xml", "_mapped_feature_weights.txt").replace("_hypothesis", "")
 	with open(feature_map_filename, 'r') as file:
 		for line in file:
 			data = line.strip().split("\t")
