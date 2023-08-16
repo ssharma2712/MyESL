@@ -176,8 +176,8 @@ if __name__ == '__main__':
 	parser.add_argument("-y", "--lambda2", help="Group sparsity parameter.", type=float, default=0.1)
 	parser.add_argument("--grid_z", help="Grid search sparsity parameter interval specified as 'min,max,steps'", type=str, default=None)
 	parser.add_argument("--grid_y", help="Grid search group sparsity parameter interval specified as 'min,max,steps'", type=str, default=None)
-	parser.add_argument("--grid_rmse_cutoff", help="RMSE cutoff when selecting models to aggregate.", type=float, default=1.0)
-	parser.add_argument("--grid_acc_cutoff", help="Accuracy cutoff when selecting models to aggregate.", type=float, default=1.0)
+	parser.add_argument("--grid_rmse_cutoff", help="RMSE cutoff when selecting models to aggregate.", type=float, default=100.0)
+	parser.add_argument("--grid_acc_cutoff", help="Accuracy cutoff when selecting models to aggregate.", type=float, default=0.0)
 	parser.add_argument("--grid_threads", help="Number of threads to use when running grid search.", type=int, default=1)
 	parser.add_argument("--grid_summary_only", help="Skip generating graphics for individual runs/models.", action='store_true', default=False)
 	parser.add_argument("--no_group_penalty", help="Perform mono-level optimization, ignoring group level sparsity penalties.",
