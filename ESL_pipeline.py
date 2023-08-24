@@ -83,7 +83,10 @@ def main(args):
 						shutil.move(hypothesis_filename, args.output)
 					else:
 						shutil.copy(hypothesis_filename, args.output)
-					shutil.move(hypothesis_filename.replace(".txt","_out_feature_weights.xml"), args.output)
+					try:
+						shutil.move(hypothesis_filename.replace(".txt","_out_feature_weights.xml"), args.output)
+					except:
+						pass
 					shutil.move(hypothesis_filename.replace("hypothesis.txt","gene_predictions.txt"), args.output)
 					gene_prediction_files[hypothesis_filename].append(os.path.join(tempdir, hypothesis_filename.replace("hypothesis.txt","gene_predictions.txt")))
 					shutil.move(hypothesis_filename.replace("hypothesis.txt", "mapped_feature_weights.txt"), args.output)
@@ -127,7 +130,10 @@ def main(args):
 		pf.process_weights(weights_file_list, hypothesis_file_list, groups_filename_list, features_filename_list, gene_list, HSS, missing_seqs, group_list)
 		for hypothesis_filename in hypothesis_file_list:
 			shutil.move(hypothesis_filename, args.output)
-			shutil.move(hypothesis_filename.replace(".txt","_out_feature_weights.xml"), args.output)
+			try:
+				shutil.move(hypothesis_filename.replace(".txt","_out_feature_weights.xml"), args.output)
+			except:
+				pass
 			shutil.move(hypothesis_filename.replace("hypothesis.txt", "gene_predictions.txt"), args.output)
 			shutil.move(hypothesis_filename.replace("hypothesis.txt", "mapped_feature_weights.txt"), args.output)
 			shutil.move(hypothesis_filename.replace("hypothesis.txt", "PSS.txt"), args.output)
