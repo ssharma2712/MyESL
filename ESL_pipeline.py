@@ -316,7 +316,7 @@ if __name__ == '__main__':
 					with open(os.path.join(args_original.output, args_original.output + "_{}_{}".format(z_ind, y_ind), "{}_{}_{}_{}_PSS.txt".format(hypothesis, args_original.output, z_ind, y_ind)), 'r') as pss_file:
 						for line in pss_file:
 							data = line.strip().split('\t')
-							if data[0] == "Position Name":
+							if data[0] == "Position Name" or float(data[1]) == 0.0:
 								continue
 							if data[0] in pss_vals:
 								pss_vals[data[0]].update({"{}_{}".format(z_ind, y_ind): data[1]})
