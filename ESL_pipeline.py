@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import argparse
 import shutil
@@ -9,6 +10,7 @@ import pipeline_funcs as pf
 import pandas
 import gene_contribution_visualizer as gcv
 from multiprocessing import Process
+from multiprocessing import Pool
 
 
 def grid_search(args, original_output, input_files):
@@ -33,7 +35,10 @@ def grid_search(args, original_output, input_files):
 	os.mkdir(args.output)
 	for hypothesis_filename in hypothesis_file_list:
 		# shutil.move(hypothesis_filename, args.output)
-		shutil.move(hypothesis_filename.replace(".txt","_{}_{}_out_feature_weights.xml".format(args.z_ind, args.y_ind)), args.output)
+		try:
+			shutil.move(hypothesis_filename.replace(".txt","_{}_{}_out_feature_weights.xml".format(args.z_ind, args.y_ind)), args.output)
+		except:
+			pass
 		shutil.move(hypothesis_filename.replace("hypothesis.txt", "{}_{}_gene_predictions.txt".format(args.z_ind, args.y_ind)), args.output)
 		shutil.move(hypothesis_filename.replace("hypothesis.txt", "{}_{}_mapped_feature_weights.txt".format(args.z_ind, args.y_ind)), args.output)
 		shutil.move(hypothesis_filename.replace("hypothesis.txt", "{}_{}_PSS.txt".format(args.z_ind, args.y_ind)), args.output)
@@ -83,10 +88,7 @@ def main(args):
 						shutil.move(hypothesis_filename, args.output)
 					else:
 						shutil.copy(hypothesis_filename, args.output)
-					try:
-						shutil.move(hypothesis_filename.replace(".txt","_out_feature_weights.xml"), args.output)
-					except:
-						pass
+					shutil.move(hypothesis_filename.replace(".txt","_out_feature_weights.xml"), args.output)
 					shutil.move(hypothesis_filename.replace("hypothesis.txt","gene_predictions.txt"), args.output)
 					gene_prediction_files[hypothesis_filename].append(os.path.join(tempdir, hypothesis_filename.replace("hypothesis.txt","gene_predictions.txt")))
 					shutil.move(hypothesis_filename.replace("hypothesis.txt", "mapped_feature_weights.txt"), args.output)
@@ -161,6 +163,7 @@ def threaded_main(args, original_output):
 
 def threaded_grid_search(args, original_output, input_files):
 	grid_search(args, original_output, input_files)
+	sys.stdout.flush()
 	shutil.move(args.output, original_output)
 
 
@@ -184,7 +187,7 @@ if __name__ == '__main__':
 	parser.add_argument("--grid_y", help="Grid search group sparsity parameter interval specified as 'min,max,steps'", type=str, default=None)
 	parser.add_argument("--grid_rmse_cutoff", help="RMSE cutoff when selecting models to aggregate.", type=float, default=100.0)
 	parser.add_argument("--grid_acc_cutoff", help="Accuracy cutoff when selecting models to aggregate.", type=float, default=0.0)
-	parser.add_argument("--grid_threads", help="Number of threads to use when running grid search.", type=int, default=1)
+	parser.add_argument("--grid_threads", help="Number of threads to use when running grid search.", type=int, default=None)
 	parser.add_argument("--grid_summary_only", help="Skip generating graphics for individual runs/models.", action='store_true', default=False)
 	parser.add_argument("--no_group_penalty", help="Perform mono-level optimization, ignoring group level sparsity penalties.",
 						action='store_true', default=False)
@@ -225,21 +228,22 @@ if __name__ == '__main__':
 		input_files["field_filename_list"], input_files["group_list"] = pf.generate_input_matrices(args.aln_list, input_files["hypothesis_file_list"], args)
 		# os.mkdir(args_original.output)
 		thread_id_list = []
-		if args_original.grid_threads > 1:
+		if args_original.grid_threads is not None:
+			thread_pool = Pool(args_original.grid_threads)
 			for lambda1 in z_list:
 				for lambda2 in y_list:
 					# Add wait/check loop here for multiprocessing thread limit
-					while True:
-						completed_threads = []
-						for thread_id in thread_id_list:
-							if os.path.exists(os.path.join(args_original.output, thread_id)):
-								completed_threads.append(thread_id)
-						for thread_id in completed_threads:
-							thread_id_list.remove(thread_id)
-						if len(thread_id_list) < args_original.grid_threads:
-							break
-						else:
-							time.sleep(1)
+					# while True:
+					# 	completed_threads = []
+					# 	for thread_id in thread_id_list:
+					# 		if os.path.exists(os.path.join(args_original.output, thread_id)):
+					# 			completed_threads.append(thread_id)
+					# 	for thread_id in completed_threads:
+					# 		thread_id_list.remove(thread_id)
+					# 	if len(thread_id_list) < args_original.grid_threads:
+					# 		break
+					# 	else:
+					# 		time.sleep(1)
 					args = copy.deepcopy(args_original)
 					args.lambda1 = lambda1
 					args.lambda2 = lambda2
@@ -250,11 +254,15 @@ if __name__ == '__main__':
 					# Start new thread for:
 					###################
 					thread_id_list.append(args_original.output + "_{}_{}".format(z_count, y_count % len(y_list)))
-					p = Process(target=threaded_grid_search, args=(args, args_original.output, input_files))
-					p.start()
+					# p = Process(target=threaded_grid_search, args=(args, args_original.output, input_files))
+					# p.start()
+					thread_pool.apply_async(threaded_grid_search, args=(copy.deepcopy(args), args_original.output, input_files))
+					time.sleep(1)
 					###################
 					y_count += 1
 				z_count += 1
+			thread_pool.close()
+			thread_pool.join()
 			# Add wait/check loop here for multiprocessing step completion
 			while True:
 				completed_threads = []
@@ -299,7 +307,7 @@ if __name__ == '__main__':
 					# Parse gene_predictions files
 					rmse = 0
 					acc = 1
-					#model = pandas.read_csv(os.path.join(args_original.output, args_original.output + "_{}_{}".format(z_ind, y_ind), "{}_{}_{}_{}_gene_predictions.txt".format(hypothesis, args_original.output, z_ind, y_ind)), delim_whitespace=True, index_col=0)
+					# model = pandas.read_csv(os.path.join(args_original.output, args_original.output + "_{}_{}".format(z_ind, y_ind), "{}_{}_{}_{}_gene_predictions.txt".format(hypothesis, args_original.output, z_ind, y_ind)), delim_whitespace=True, index_col=0)
 					model = pandas.read_csv(os.path.join(args_original.output, args_original.output + "_{}_{}".format(z_ind, y_ind), "{}_{}_{}_{}_gene_predictions.txt".format(hypothesis, args_original.output, z_ind, y_ind)), delim_whitespace=True, index_col=0)
 					rmse = ((model.Response - model.Prediction) ** 2).mean() ** 0.5
 					acc = sum([1 for x in zip(model.Response, model.Prediction) if (x[0] == -1 and x[1] < 0) or (x[0] == 1 and x[1] > 0)])/float(model.shape[0])
@@ -338,11 +346,11 @@ if __name__ == '__main__':
 					file.write("{}\t{}\n".format(pos, statistics.median([float(x) for x in pss_vals[pos].values() if x != 0])))
 			# Write aggregated gene_predictions file
 			with open(os.path.join(args_original.output, "{}_GCS_median.txt".format(hypothesis)), 'w') as file:
-				file.write("SeqID\t{}\n".format("\t".join([gene for gene in gene_predictions[0].columns if gene not in ["SeqID", "Prediction", "Intercept"]])))
+				file.write("SeqID\tResponse\tPrediction_mode\t{}\n".format("\t".join([gene for gene in gene_predictions[0].columns if gene not in ["SeqID", "Prediction", "Intercept", "Response"]])))
 				for species in gene_predictions[0].index:
 					file.write("{}\t".format(species))
 					for gene in gene_predictions[0].columns:
-						if gene in ["SeqID", "Prediction", "Intercept"]:
+						if gene in ["SeqID", "Intercept"]:
 							continue
 						GCS_list = [x[gene][species] for x in gene_predictions if x[gene][species] != 0]
 						if len(GCS_list) == 0:
@@ -350,9 +358,13 @@ if __name__ == '__main__':
 						# if gene == "Response":
 						# 	print(GCS_list)
 						# 	print(statistics.median(GCS_list))
-						file.write("{}\t".format(statistics.median(GCS_list)))
+						if gene == "Prediction":
+							#file.write("{}\t".format(statistics.mode(GCS_list)))
+							file.write("{}\t".format(statistics.mean(GCS_list)))
+						else:
+							file.write("{}\t".format(statistics.median(GCS_list)))
 					file.write("\n")
-			gcv.gcv_median(os.path.join(args_original.output, "{}_GCS_median.txt".format(hypothesis)), gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff)
+			gcv.gcv_median(os.path.join(args_original.output, "{}_GCS_median.txt".format(hypothesis)), lead_cols=3, gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff)
 		for file in input_files["hypothesis_file_list"]:
 			shutil.move(file, args_original.output)
 	else:

@@ -627,6 +627,7 @@ def run_esl(features_filename_list, groups_filename_list, response_filename_list
 		if method == "overlapping_sg_lasso_leastr":
 			esl_cmd = esl_cmd + " -g {}".format(field_filename)
 		print(esl_cmd)
+		subprocess.call("touch {}".format(basename + "_out_feature_weights.xml"), stderr=subprocess.STDOUT, shell=True)
 		subprocess.call(esl_cmd.split(" "), stderr=subprocess.STDOUT)
 		weights_file_list.append(basename + "_out_feature_weights.xml")
 	return weights_file_list
@@ -663,7 +664,8 @@ def generate_mapped_weights_file(weights_filename, feature_map_filename):
 					pos_stats[data[0]] = data[1:]
 	with open(output_filename, 'w') as file:
 		for i in range(0, len(model["weight_list"])):
-			file.write("{}\t{}\n".format(feature_map[i+1], model["weight_list"][i]))
+			if float(model["weight_list"][i]) != 0.0:
+				file.write("{}\t{}\n".format(feature_map[i+1], model["weight_list"][i]))
 			posname = feature_map[i + 1][0:-2]
 			if posname != last_posname:
 				posname_list.append(posname)
@@ -678,6 +680,7 @@ def generate_mapped_weights_file(weights_filename, feature_map_filename):
 			file.write("{}\t{}\n".format("Position Name", "PSS"))
 			for posname in posname_list:
 				file.write("{}\t{}\n".format(posname, PSS[posname]))
+	os.remove(weights_filename)
 	# Return sum of all position significance scores
 	return sum(PSS.values())
 
