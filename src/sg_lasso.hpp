@@ -42,6 +42,15 @@ class SGLasso
                    std::map<std::string, std::string> slep_opts,
                    const bool intercept = true);
 
+  SGLasso(const arma::mat& features,
+                   const arma::rowvec& responses,
+                   const arma::mat& weights,
+                   double* lambda,
+                   std::map<std::string, std::string> slep_opts,
+                   const arma::rowvec& xval_idxs,
+                   int xval_id,
+                   const bool intercept = true);
+
   /**
    * Empty constructor.  This gives a non-working model, so make sure Train() is
    * called (or make sure the model parameters are set) before calling
@@ -85,6 +94,8 @@ class SGLasso
                const bool intercept = true);
 
   void writeModelToXMLStream(std::ofstream& XMLFile);
+  void writeSparseMappedWeightsToStream(std::ofstream& MappedWeightsFile, std::ifstream& FeatureMap);
+
 
   /**
    * Calculate y_i for each data point in points.
@@ -144,6 +155,8 @@ class SGLasso
   //! Return whether or not an intercept term is used in the model.
   bool Intercept() const { return intercept; }
 
+  int NonZeroGeneCount() { return nz_gene_count; }
+
   /**
    * Serialize the model.
    */
@@ -160,6 +173,8 @@ class SGLasso
 
 
  private:
+  //Non-zero gene count
+  int nz_gene_count = 0;
   /**
    * The calculated B.
    * Initialized and filled by constructor to hold the least squares solution.
@@ -182,3 +197,5 @@ class SGLasso
 //} // namespace mlpack
 
 //#endif // MLPACK_METHODS_SG_LASSO_HPP
+
+int countNonZeroGenes(const arma::vec& arr, const arma::mat& ranges);

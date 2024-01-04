@@ -16,6 +16,24 @@ SGLasso::SGLasso(const arma::mat& features,
   Train(features, responses, weights, slep_opts, intercept);
 }
 
+
+SGLasso::SGLasso(const arma::mat& features,
+                                   const arma::rowvec& responses,
+                                   const arma::mat& weights,
+                                   double* lambda,
+                                   std::map<std::string, std::string> slep_opts,
+                                   const arma::rowvec& xval_idxs,
+                                   int xval_id,
+                                   const bool intercept) :
+    lambda(lambda),
+    intercept(intercept)
+{
+  //subset features and responses according to xval_id and xval_idxs
+  arma::uvec indices = arma::find(xval_idxs != xval_id);
+  Train(features.cols(indices), responses.elem(indices).t(), weights, slep_opts, intercept);
+}
+
+
 void SGLasso::writeModelToXMLStream(std::ofstream& XMLFile)
 {
   int i_level = 0;
@@ -45,6 +63,42 @@ void SGLasso::writeModelToXMLStream(std::ofstream& XMLFile)
 
 }
 
+void SGLasso::writeSparseMappedWeightsToStream(std::ofstream& MappedWeightsFile, std::ifstream& FeatureMap)
+{
+  /*
+  int i_level = 0;
+  //std::string XMLString = "";
+  XMLFile << std::string(i_level * 8, ' ') + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>" + "\n";
+  XMLFile << std::string(i_level * 8, ' ') + "<model>" + "\n";
+  i_level++;
+  XMLFile << std::string(i_level * 8, ' ') + "<parameters>" + "\n";
+  i_level++;
+  XMLFile << std::string(i_level * 8, ' ') + "<n_rows>" + std::to_string(this->parameters.n_cols) + "</n_rows>" + "\n";
+  XMLFile << std::string(i_level * 8, ' ') + "<n_cols>" + std::to_string(this->parameters.n_rows) + "</n_cols>" + "\n";
+  XMLFile << std::string(i_level * 8, ' ') + "<n_elem>" + std::to_string(this->parameters.n_elem) + "</n_elem>" + "\n";
+  */
+  std::string line;
+  std::getline(FeatureMap, line);
+  //for(int i=0; i<this->parameters.n_cols; i++)
+  for(int i=0; i<this->parameters.n_elem; i++)
+  {
+    std::getline(FeatureMap, line);
+    if (this->parameters(i) == 0.0)
+    {
+	  continue;
+    }
+    std::istringstream iss(line);
+    std::string feature_label;
+    std::getline(iss, feature_label, '\t');
+    std::getline(iss, feature_label, '\t');
+    std::ostringstream streamObj;
+    streamObj << std::setprecision(17) << std::scientific << this->parameters(i);
+    MappedWeightsFile << feature_label + "	" + streamObj.str() + "\n";
+  }
+  MappedWeightsFile << "Intercept	" + std::to_string(this->intercept_value) + "\n";
+  FeatureMap.clear();
+  FeatureMap.seekg(0);
+}
 
 
 arma::rowvec& SGLasso::Train(const arma::mat& features,
@@ -429,6 +483,8 @@ std::cout << "m:" << m << " n:" << n << std::endl;
   this->intercept_value = c;
 
 //std::cout << "15..." << std::endl;
+  this->nz_gene_count = countNonZeroGenes(parameters, weights);
+
   return x_row;
 
 
@@ -459,6 +515,9 @@ std::cout << "m:" << m << " n:" << n << std::endl;
 //  return ComputeError(features, responses);
 
 }
+
+
+
 
 /*
 void SGLasso::Predict(const arma::mat& points,
@@ -731,4 +790,26 @@ const double SGLasso::computeLambda2Max(const arma::rowvec& x_in,
 	}
 
 	return lambda2_max;
+}
+
+
+int countNonZeroGenes(const arma::vec& arr, const arma::mat& ranges) {
+    auto detectNonZeroInRange = [&arr](int start, int end) -> int {
+        for (int i = start; i <= end; ++i) {
+            if (arr(i) != 0) {
+                return 1;
+            }
+        }
+        return 0;
+    };
+    int count = 0;
+
+    for (arma::uword i = 0; i < ranges.n_rows; ++i) {
+        int start = static_cast<int>(ranges(i, 0))-1;
+        int end = static_cast<int>(ranges(i, 1))-1;
+        count = count + detectNonZeroInRange(start, end);
+    }
+
+    //std::cout << "Number of non-zero genes: " << count << std::endl;
+    return count;
 }

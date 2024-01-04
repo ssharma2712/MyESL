@@ -16,6 +16,24 @@ SGLassoLeastR::SGLassoLeastR(const arma::mat& features,
   Train(features, responses, weights, slep_opts, intercept);
 }
 
+
+SGLassoLeastR::SGLassoLeastR(const arma::mat& features,
+                                   const arma::rowvec& responses,
+                                   const arma::mat& weights,
+                                   double* lambda,
+                                   std::map<std::string, std::string> slep_opts,
+                                   const arma::rowvec& xval_idxs,
+                                   int xval_id,
+                                   const bool intercept) :
+    lambda(lambda),
+    intercept(intercept)
+{
+  //subset features and responses according to xval_id and xval_idxs
+  arma::uvec indices = arma::find(xval_idxs != xval_id);
+  Train(features.cols(indices), responses.elem(indices).t(), weights, slep_opts, intercept);
+}
+
+
 void SGLassoLeastR::writeModelToXMLStream(std::ofstream& XMLFile)
 {
   int i_level = 0;
@@ -43,6 +61,30 @@ void SGLassoLeastR::writeModelToXMLStream(std::ofstream& XMLFile)
   i_level--;
   XMLFile << std::string(i_level * 8, ' ') + "</model>" + "\n";
 
+}
+
+void SGLassoLeastR::writeSparseMappedWeightsToStream(std::ofstream& MappedWeightsFile, std::ifstream& FeatureMap)
+{
+  std::string line;
+  std::getline(FeatureMap, line);
+  for(int i=0; i<this->parameters.n_elem; i++)
+  {
+    std::getline(FeatureMap, line);
+    if (this->parameters(i) == 0.0)
+    {
+	  continue;
+    }
+    std::istringstream iss(line);
+    std::string feature_label;
+    std::getline(iss, feature_label, '\t');
+    std::getline(iss, feature_label, '\t');
+    std::ostringstream streamObj;
+    streamObj << std::setprecision(17) << std::scientific << this->parameters(i);
+    MappedWeightsFile << feature_label + "	" + streamObj.str() + "\n";
+  }
+  MappedWeightsFile << "Intercept	" + std::to_string(this->intercept_value) + "\n";
+  FeatureMap.clear();
+  FeatureMap.seekg(0);
 }
 
 //double SGLassoLeastR::Train(const arma::mat& features,
@@ -407,6 +449,9 @@ initial_pass = false;
 //x_row.save("x_row.csv", arma::csv_ascii);
 
 //std::cout << "15..." << std::endl;
+
+  this->nz_gene_count = countNonZeroGenes(parameters, weights);
+
   return x_row;
 
 
@@ -714,4 +759,26 @@ const double SGLassoLeastR::computeLambda2Max(const arma::rowvec& x_in,
 	}
 
 	return lambda2_max;
+}
+
+
+int countNonZeroGenes(const arma::vec& arr, const arma::mat& ranges) {
+    auto detectNonZeroInRange = [&arr](int start, int end) -> int {
+        for (int i = start; i <= end; ++i) {
+            if (arr(i) != 0) {
+                return 1;
+            }
+        }
+        return 0;
+    };
+    int count = 0;
+
+    for (arma::uword i = 0; i < ranges.n_rows; ++i) {
+        int start = static_cast<int>(ranges(i, 0))-1;
+        int end = static_cast<int>(ranges(i, 1))-1;
+        count = count + detectNonZeroInRange(start, end);
+    }
+
+    //std::cout << "Number of non-zero genes: " << count << std::endl;
+    return count;
 }
