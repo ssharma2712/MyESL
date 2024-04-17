@@ -377,7 +377,8 @@ initial_pass = false;
 	     break;
 	  }
 
-	  if (l_sum <= r_sum * L)
+//	  if (l_sum <= r_sum * L) // Changed to epsilon comparison on 4/17/2024 to match windows output
+	  if (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12))
 	  {
 //         if (iterStep < 5) {std::cout<<"break2"<<std::endl;}
 	     break;

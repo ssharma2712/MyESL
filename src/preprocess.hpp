@@ -37,12 +37,12 @@ class alnData
 	private:
 		int featureIndex;
 		int geneIndex;
-		bool normalize;
-		bool ignoreSingletons;
-		bool upsampleBalance;
-		bool downsampleBalance;
-		bool useDiskCache;
-		bool indelFuzzing;
+		bool normalize = false;
+		bool ignoreSingletons = false;
+		bool upsampleBalance = false;
+		bool downsampleBalance = false;
+		bool useDiskCache = false;
+		bool indelFuzzing = false;
 		int countThreshold;
 		string currentGene;
 		string delimiter;
