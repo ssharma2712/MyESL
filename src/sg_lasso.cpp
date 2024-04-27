@@ -126,6 +126,7 @@ arma::rowvec& SGLasso::Train(const arma::mat& features,
   int opts_rFlag = 1;
   int opts_mFlag = 0;
   double opts_tol = 0.0001;
+  int opts_disableEC = 0;
   arma::mat opts_ind = weights;
 
   //Overwrite default options with those found in slep_opts file.
@@ -150,6 +151,9 @@ arma::rowvec& SGLasso::Train(const arma::mat& features,
   }
   if ( slep_opts.find("tol") != slep_opts.end() ) {
 	opts_tol = std::stod(slep_opts["tol"]);
+  }
+  if ( slep_opts.find("disableEC") != slep_opts.end() ) {
+	opts_disableEC = std::stoi(slep_opts["disableEC"]);
   }
   std::string line;
   if ( slep_opts.find("nu") != slep_opts.end() ) {
@@ -415,7 +419,7 @@ std::cout << "m:" << m << " n:" << n << std::endl;
 	  }
 
 //	  if (l_sum <= r_sum * L) // Changed to epsilon comparison on 4/17/2024 to match windows output
-	  if (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12))
+	  if ((opts_disableEC==0 && (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12)) || opts_disableEC==1 && l_sum <= r_sum * L))
 	  {
 	     break;
 	  } else {

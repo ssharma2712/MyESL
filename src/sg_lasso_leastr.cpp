@@ -111,6 +111,7 @@ bool initial_pass = true;
   int opts_rFlag = 1;
   int opts_mFlag = 0;
   double opts_tol = 0.0001;
+  int opts_disableEC = 0;
   arma::mat opts_ind = weights;
 
   //Overwrite default options with those found in slep_opts file.
@@ -136,7 +137,9 @@ bool initial_pass = true;
   if ( slep_opts.find("tol") != slep_opts.end() ) {
 	opts_tol = std::stod(slep_opts["tol"]);
   }
-
+  if ( slep_opts.find("disableEC") != slep_opts.end() ) {
+	opts_disableEC = std::stoi(slep_opts["disableEC"]);
+  }
 
   /*
    * We want to calculate the a_i coefficients of:
@@ -378,7 +381,7 @@ initial_pass = false;
 	  }
 
 //	  if (l_sum <= r_sum * L) // Changed to epsilon comparison on 4/17/2024 to match windows output
-	  if (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12))
+	  if ((opts_disableEC==0 && (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12)) || opts_disableEC==1 && l_sum <= r_sum * L))
 	  {
 //         if (iterStep < 5) {std::cout<<"break2"<<std::endl;}
 	     break;

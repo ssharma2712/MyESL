@@ -139,6 +139,7 @@ arma::rowvec& OLSGLassoLeastR::Train(const arma::mat& features,
   int opts_maxIter2 = 100;
   double opts_tol2 = 0.0001;
   int opts_flag2 = 2;
+  int opts_disableEC = 0;
   //Overwrite default options with those found in slep_opts file.
   if ( slep_opts.find("maxIter") != slep_opts.end() ) {
 	opts_maxIter = std::stoi(slep_opts["maxIter"]);
@@ -170,6 +171,9 @@ arma::rowvec& OLSGLassoLeastR::Train(const arma::mat& features,
   }
   if ( slep_opts.find("flag2") != slep_opts.end() ) {
 	opts_flag2 = std::stoi(slep_opts["flag2"]);
+  }
+  if ( slep_opts.find("disableEC") != slep_opts.end() ) {
+	opts_disableEC = std::stoi(slep_opts["disableEC"]);
   }
   std::string line;
   if ( slep_opts.find("nu") != slep_opts.end() ) {
@@ -508,7 +512,7 @@ opts_ind = opts_ind.t();
 	  }
 
 //	  if (l_sum <= r_sum * L) // Changed to epsilon comparison on 4/17/2024 to match windows output
-	  if (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12))
+	  if ((opts_disableEC==0 && (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12)) || opts_disableEC==1 && l_sum <= r_sum * L))
 	  {
 	     break;
 	  } else {

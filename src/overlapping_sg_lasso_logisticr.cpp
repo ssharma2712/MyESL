@@ -130,6 +130,7 @@ arma::rowvec& OLSGLassoLogisticR::Train(const arma::mat& features,
   int opts_rFlag = 1;
   int opts_mFlag = 0;
   double opts_tol = 0.0001;
+  int opts_disableEC = 0;
   arma::mat opts_ind = weights;
   opts_ind.cols(0,1) = opts_ind.cols(0,1) - 1;
   arma::rowvec opts_field = field - 1;
@@ -170,6 +171,9 @@ arma::rowvec& OLSGLassoLogisticR::Train(const arma::mat& features,
   }
   if ( slep_opts.find("flag2") != slep_opts.end() ) {
 	opts_flag2 = std::stoi(slep_opts["flag2"]);
+  }
+  if ( slep_opts.find("disableEC") != slep_opts.end() ) {
+	opts_disableEC = std::stoi(slep_opts["disableEC"]);
   }
   std::string line;
   if ( slep_opts.find("nu") != slep_opts.end() ) {
@@ -447,7 +451,7 @@ opts_ind = opts_ind.t(); //This might be wrong
 	  }
 
 //	  if (l_sum <= r_sum * L) // Changed to epsilon comparison on 4/17/2024 to match windows output
-	  if (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12))
+	  if ((opts_disableEC==0 && (l_sum < r_sum * L || abs(l_sum - (r_sum * L)) < std::pow(0.1, 12)) || opts_disableEC==1 && l_sum <= r_sum * L))
 	  {
 	     break;
 	  } else {
