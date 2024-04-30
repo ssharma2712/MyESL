@@ -159,7 +159,7 @@ def main(args):
 				prediction += weighted_group_sums[group].get(seq_id, 0)
 			file.write("{}\t{}\t{}\t{}\t{}\n".format(seq_id, response[seq_id], prediction, model["Intercept"], "\t".join([str(weighted_group_sums[group].get(seq_id, numpy.nan)) for group in group_list])))
 
-	gcv_files = gcv.main(args.output)
+	gcv_files = gcv.main(args.output, gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff, m_grid=args.m_grid)
 
 
 if __name__ == '__main__':
@@ -173,6 +173,7 @@ if __name__ == '__main__':
 	parser.add_argument("-o", "--output", help="Output directory.", type=str, default=None)
 	parser.add_argument("--gene_display_limit", help="Limits the number of genes displayed in the generated graph images.", type=int, default=100)
 	parser.add_argument("--gene_display_cutoff", help="Limits genes displayed in the generated graph images to those with sum-of-squares greater than cutoff value.", type=int, default=0.0)
+	parser.add_argument("--m_grid", help="Generate m-grid graphical output.", action='store_true', default=False)
 	args = parser.parse_args()
 	main(args)
 

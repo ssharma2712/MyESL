@@ -81,7 +81,7 @@ def grid_search(args, original_output, input_files):
 				shutil.move(hypothesis_filename.replace("hypothesis.txt", "sweights.txt"), args.output)
 			if not args.grid_summary_only:
 				for lambda_pair1 in lambda_list:
-					gcv_files.append(gcv.main(os.path.join(args.output,hypothesis_filename.replace("hypothesis.txt", "gene_predictions_{}_{}.txt".format(lambda_pair1[0], lambda_pair1[1]))),gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff))
+					gcv_files.append(gcv.main(os.path.join(args.output,hypothesis_filename.replace("hypothesis.txt", "gene_predictions_{}_{}.txt".format(lambda_pair1[0], lambda_pair1[1]))),gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff, m_grid=args.m_grid))
 	for file in gcv_files:
 		if os.path.dirname(file)!=os.path.normpath(args.output):
 			shutil.move(file, args.output)
@@ -133,7 +133,7 @@ def main(args):
 				merged_rep_predictions_files[hypothesis_filename] = gcv.merge_predictions(merged_parts_prediction_files[hypothesis_filename],hypothesis_filename.replace("hypothesis.txt","merged_gene_predictions_final.txt"))
 				gcv_files.extend(merged_parts_prediction_files[hypothesis_filename])
 				gcv_files.append(merged_rep_predictions_files[hypothesis_filename])
-				gcv_files.append(gcv.main(merged_rep_predictions_files[hypothesis_filename], gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff))
+				gcv_files.append(gcv.main(merged_rep_predictions_files[hypothesis_filename], gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff, m_grid=args.m_grid))
 		os.mkdir(args.output)
 		for tempdir in tempdir_list:
 			shutil.move(tempdir, args.output)
@@ -189,10 +189,10 @@ def main(args):
 				if args.slep_sample_balance or args.smart_sampling:
 					shutil.move(hypothesis_filename.replace("hypothesis.txt", "slep_opts.txt"), args.output)
 					shutil.move(hypothesis_filename.replace("hypothesis.txt", "sweights.txt"), args.output)
-				gcv_files.append(gcv.main(os.path.join(args.output,hypothesis_filename.replace("hypothesis.txt", "gene_predictions.txt")),gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff))
+				gcv_files.append(gcv.main(os.path.join(args.output,hypothesis_filename.replace("hypothesis.txt", "gene_predictions.txt")),gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff, m_grid=args.m_grid))
 				if args.xval > 1:
 					print("{}-Fold Cross Validation Accuracy:".format(args.xval))
-					gcv_files.append(gcv.main(os.path.join(args.output, hypothesis_filename.replace("hypothesis.txt", "gene_predictions_xval.txt")), gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff))
+					gcv_files.append(gcv.main(os.path.join(args.output, hypothesis_filename.replace("hypothesis.txt", "gene_predictions_xval.txt")), gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff, m_grid=args.m_grid))
 		for file in gcv_files:
 			if os.path.dirname(file)!=os.path.normpath(args.output):
 				shutil.move(file, args.output)
@@ -253,6 +253,7 @@ if __name__ == '__main__':
 	parser.add_argument("--xval", help="Number of partitions to use when performing cross-validation.", type=int, default=1)
 	parser.add_argument("--gene_display_limit", help="Limits the number of genes displayed in the generated graph images.", type=int, default=100)
 	parser.add_argument("--gene_display_cutoff", help="Limits genes displayed in the generated graph images to those with sum-of-squares greater than cutoff value.", type=int, default=0.0)
+	parser.add_argument("--m_grid", help="Generate m-grid graphical output.", action='store_true', default=False)
 	args = parser.parse_args()
 	if args.no_group_penalty:
 		args.lambda2 = 0.0000001
@@ -372,7 +373,7 @@ if __name__ == '__main__':
 						else:
 							file.write("{}\t".format(statistics.median(GCS_list)))
 					file.write("\n")
-			gcv.gcv_median(os.path.join(args_original.output, "{}_GCS_median.txt".format(hypothesis)), lead_cols=3, gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff)
+			gcv.main(os.path.join(args_original.output, "{}_GCS_median.txt".format(hypothesis)), lead_cols=3, gene_limit=args.gene_display_limit, ssq_threshold=args.gene_display_cutoff, m_grid=args.m_grid)
 		for file in input_files["hypothesis_file_list"]:
 			if args.skip_preprocessing and os.path.exists(os.path.join(args_original.output, file)):
 				os.remove(os.path.join(args_original.output, file))

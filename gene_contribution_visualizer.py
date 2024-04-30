@@ -25,178 +25,6 @@ def get_roc(labels, predictions):
 	print("False Negative Rate: {}".format(sum([1.0 for x in pos_set if x < 0]) / len(pos_set)))
 	return TPR, FPR
 
-def main(predictions_table, lead_cols=4, response_idx=2, prediction_idx=3, output=None, ssq_threshold=0, gene_limit=100):
-	sample_size = 24
-	sample_size = None
-	with open(predictions_table, 'r') as file:
-		header = file.readline().split("\t")
-		num_cols = len(header)
-		file.seek(0)
-		if sample_size is None:
-			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None)
-		else:
-			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None, usecols=range(0, lead_cols + sample_size))
-			header = header[0: lead_cols + sample_size]
-		seqid_list = [(val)[0] for val in data]
-		data = np.asarray([list(val)[1:] for val in data], dtype="float")
-	num_rows, num_cols = data.shape
-	print("\nRows: {}\nCols: {}\n".format(num_rows, num_cols))
-	#data = np.random.rand(10, 10) * 2 - 1
-
-
-	# Sort columns by sum of contributions
-	ssq_scores = list(zip(range(3, num_cols), [np.sum(np.nan_to_num(gene_col)**2) for gene_col in data.transpose()[3:]], header[4:]))
-	ssq_scores.sort(key=lambda tup: tup[1], reverse=True)
-	if ssq_threshold > 0:
-		ssq_scores = [val for val in ssq_scores if val[1] >= ssq_threshold]
-	sum_scores = list(zip(range(3, num_cols), [np.sum(gene_col) for gene_col in data.transpose()[3:]], header[4:]))
-	sum_scores.sort(key=lambda tup: tup[1], reverse=True)
-	data = data[:, list(range(0, 3)) + [val[0] for val in ssq_scores[0:gene_limit]]]
-	header = header[0:4] + [val[2] for val in ssq_scores[0:gene_limit]]
-
-
-	# Sort rows by ground truth and predicted value
-	sorted_rows = list(zip(range(0, num_rows), data[:, 0], data[:, 1]))
-	sorted_rows.sort(key=lambda tup: (tup[1], tup[2]), reverse=True)
-	data = data[[val[0] for val in sorted_rows]]
-	seqid_list = [seqid_list[val[0]] for val in sorted_rows]
-
-	# Reset dimensions if truncation has occurred.
-	num_rows, num_cols = data.shape
-
-	# draw gridlines
-	xtick_width = 20
-	ytick_width = 20
-	#fig, ax = plt.subplots()
-	fig, ax = plt.subplots(figsize=(num_cols * 0.1, num_rows * 0.1))
-	#fig.set_size_inches()
-	label_size = 3
-	cell_label_size = 2.0
-	DPI = 600
-	ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=0.2)
-	# Make red-yellow-green color map with NaN=blue
-	cmap = copy.copy(mpl.cm.get_cmap("RdYlGn"))
-	cmap.set_bad(color='lightskyblue')
-	# Apply color map to first three columns, and then separately to the rest of the columns
-	ax.imshow(data[:, 0:3], cmap=cmap, norm=TwoSlopeNorm(0), extent=(0, (lead_cols - 1) * xtick_width, num_rows * ytick_width, 0))
-	ax.imshow(data[:, 3:], cmap=cmap, norm=TwoSlopeNorm(0), extent=((lead_cols - 1)*xtick_width, num_cols*xtick_width, num_rows*ytick_width, 0))
-	#ax.set_xticks(np.arange(-.5, 100, 10));
-	ax.set_xticks(np.arange(0, num_cols * xtick_width, xtick_width));
-	ax.set_xticklabels(header[1:], rotation=90, ha='left', size=label_size)
-	#ax.set_yticks(np.arange(-.5, 10, 1));
-	ax.set_yticks(np.arange(0, num_rows * ytick_width, ytick_width));
-	ax.set_yticklabels(seqid_list, va="top", size=label_size)
-	ax.set_xlabel('Alignment Names', fontsize=label_size*1.25)
-	ax.set_ylabel('Sequence IDs', fontsize=label_size*1.25)
-	ax.set_title('Group Contribution Weights', fontsize=label_size*1.75)
-	for (i, j), z in np.ndenumerate(data):
-		ax.text((j+0.5) * xtick_width, (i+0.5)*ytick_width, '{:0.2f}'.format(z), ha='center', va='center', size=cell_label_size)
-
-	if output is None:
-		output = os.path.join(os.path.dirname(predictions_table),"{}.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
-	plt.savefig(output, dpi=DPI, bbox_inches='tight')
-	plt.close()
-	roc = get_roc(data[:,0], data[:,1])
-	roc_output = os.path.join(os.path.dirname(predictions_table),"{}_ROC.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
-	plt.plot(roc[1], roc[0])
-	plt.savefig(roc_output, dpi=DPI, bbox_inches='tight')
-	return output
-
-
-def gcv_median(predictions_table, lead_cols=2, response_idx=2, prediction_idx=3, output=None, ssq_threshold=0, gene_limit=100):
-	sample_size = 24
-	sample_size = None
-	with open(predictions_table, 'r') as file:
-		header = file.readline().split("\t")
-		num_cols = len(header)
-		file.seek(0)
-		if sample_size is None:
-			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None)
-		else:
-			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None, usecols=range(0, lead_cols + sample_size))
-			header = header[0: lead_cols + sample_size]
-		seqid_list = [(val)[0] for val in data]
-		data = np.asarray([list(val)[1:] for val in data], dtype="float")
-	num_rows, num_cols = data.shape
-	print("\nRows: {}\nCols: {}\n".format(num_rows, num_cols))
-	#data = np.random.rand(10, 10) * 2 - 1
-
-
-	# Sort columns by sum of contributions
-	ssq_scores = list(zip(range(2, num_cols), [np.sum(np.nan_to_num(gene_col)**2) for gene_col in data.transpose()[2:]], header[3:]))
-	ssq_scores.sort(key=lambda tup: tup[1], reverse=True)
-	if ssq_threshold > 0:
-		ssq_scores = [val for val in ssq_scores if val[1] >= ssq_threshold]
-	sum_scores = list(zip(range(2, num_cols), [np.sum(gene_col) for gene_col in data.transpose()[2:]], header[3:]))
-	sum_scores.sort(key=lambda tup: tup[1], reverse=True)
-	ingroup_data = data[data[:, 0] == 1.0]
-	# Mean positive GSC scores
-	mpgsc_scores = list(zip(range(2, num_cols), [np.mean([x for x in np.nan_to_num(gene_col) if x > 0] if len([x for x in np.nan_to_num(gene_col) if x > 0]) > 0 else [0]) for gene_col in ingroup_data.transpose()[2:]], header[3:]))
-	mpgsc_scores.sort(key=lambda tup: tup[1], reverse=True)
-
-
-	#data = data[:, list(range(0, 2)) + [val[0] for val in ssq_scores[0:gene_limit]]]
-	#header = header[0:3] + [val[2] for val in ssq_scores[0:gene_limit]]
-
-	data = data[:, list(range(0, 2)) + [val[0] for val in mpgsc_scores[0:gene_limit]]]
-	header = header[0:3] + [val[2] for val in mpgsc_scores[0:gene_limit]]
-
-
-	# Sort rows by ground truth and predicted value
-	# sorted_rows = list(zip(range(0, num_rows), data[:, 0], data[:, 1]))
-	# sorted_rows.sort(key=lambda tup: (tup[1], tup[2]), reverse=True)
-	# Sort rows by expit of predicted value
-	expit = [1/(1 + math.exp(-x)) for x in data[:, 1]]
-	pr = [(x - 0.5)/(max(expit) - 0.5) for x in expit]
-	pr = [x if x > 0 else 0 for x in pr]
-	sorted_rows = list(zip(range(0, num_rows), pr, data[:, 0]))
-	sorted_rows.sort(key=lambda tup: (tup[2], tup[1]), reverse=True)
-	data = data[[val[0] for val in sorted_rows]]
-	seqid_list = ["{} ({:0.2f})".format(seqid_list[val[0]], val[1]) for val in sorted_rows]
-
-	# Reset dimensions if truncation has occurred.
-	num_rows, num_cols = data.shape
-
-	# draw gridlines
-	xtick_width = 20
-	ytick_width = 20
-	#fig, ax = plt.subplots()
-	fig, ax = plt.subplots(figsize=(num_cols * 0.1, num_rows * 0.1))
-	#fig.set_size_inches()
-	label_size = 3
-	cell_label_size = 2.0
-	DPI = 600
-	ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=0.2)
-	# Make red-yellow-green color map with NaN=blue
-	cmap = copy.copy(mpl.cm.get_cmap("RdYlGn"))
-	cmap.set_bad(color='lightskyblue')
-	# Apply color map to first three columns, and then separately to the rest of the columns
-	#ax.imshow(data[:, 0:2], cmap=cmap, norm=TwoSlopeNorm(0), extent=(0, (lead_cols - 1) * xtick_width, num_rows * ytick_width, 0))
-	ax.imshow(data[:, 0:1], cmap=cmap, norm=TwoSlopeNorm(0), extent=(0, (1) * xtick_width, num_rows * ytick_width, 0))
-	ax.imshow(data[:, 1:2], cmap=cmap, norm=TwoSlopeNorm(0), extent=((1) * xtick_width, (2) * xtick_width, num_rows * ytick_width, 0))
-	ax.imshow(data[:, 2:], cmap=cmap, norm=TwoSlopeNorm(0), extent=((lead_cols - 1)*xtick_width, num_cols*xtick_width, num_rows*ytick_width, 0))
-	#ax.set_xticks(np.arange(-.5, 100, 10));
-	ax.set_xticks(np.arange(0, num_cols * xtick_width, xtick_width));
-	ax.set_xticklabels(header[1:], rotation=90, ha='left', size=label_size)
-	#ax.set_yticks(np.arange(-.5, 10, 1));
-	ax.set_yticks(np.arange(0, num_rows * ytick_width, ytick_width));
-	ax.set_yticklabels(seqid_list, va="top", size=label_size)
-	ax.set_xlabel('Alignment Names', fontsize=label_size*1.25)
-	ax.set_ylabel('Sequence IDs', fontsize=label_size*1.25)
-	ax.set_title('Group Contribution Weights', fontsize=label_size*1.75)
-	for (i, j), z in np.ndenumerate(data):
-		ax.text((j+0.5) * xtick_width, (i+0.5)*ytick_width, '{:0.2f}'.format(z), ha='center', va='center', size=cell_label_size)
-
-	if output is None:
-		output = os.path.join(os.path.dirname(predictions_table),"{}.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
-	plt.savefig(output, dpi=DPI, bbox_inches='tight')
-	plt.close()
-	# roc = get_roc(data[:,0], data[:,1])
-	# roc_output = os.path.join(os.path.dirname(predictions_table),"{}_ROC.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
-	# plt.plot(roc[1], roc[0])
-	# plt.savefig(roc_output, dpi=DPI, bbox_inches='tight')
-	return output
-
 
 def merge_predictions(file_list, output_filename=None):
 	seqid_list = None
@@ -253,6 +81,114 @@ def merge_predictions(file_list, output_filename=None):
 	return output_filename
 
 
+def main(predictions_table, lead_cols=4, response_idx=2, prediction_idx=3, output=None, ssq_threshold=0, gene_limit=100, m_grid=False):
+	sample_size = 24
+	sample_size = None
+	with open(predictions_table, 'r') as file:
+		header = file.readline().split("\t")
+		num_cols = len(header)
+		file.seek(0)
+		if sample_size is None:
+			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None)
+		else:
+			data = np.genfromtxt(file, dtype='U', skip_header=1, usemask=True, missing_values="N/A", encoding=None, usecols=range(0, lead_cols + sample_size))
+			header = header[0: lead_cols + sample_size]
+		seqid_list = [(val)[0] for val in data]
+		data = np.asarray([list(val)[1:] for val in data], dtype="float")
+	num_rows, num_cols = data.shape
+	print("\nRows: {}\nCols: {}\n".format(num_rows, num_cols))
+
+
+	# Sort columns by sum of contributions
+	ssq_scores = list(zip(range(lead_cols-1, num_cols), [np.sum(np.nan_to_num(gene_col)**2) for gene_col in data.transpose()[lead_cols-1:]], header[lead_cols:]))
+	ssq_scores.sort(key=lambda tup: tup[1], reverse=True)
+	if ssq_threshold > 0:
+		ssq_scores = [val for val in ssq_scores if val[1] >= ssq_threshold]
+	sum_scores = list(zip(range(lead_cols-1, num_cols), [np.sum(gene_col) for gene_col in data.transpose()[lead_cols-1:]], header[lead_cols:]))
+	sum_scores.sort(key=lambda tup: tup[1], reverse=True)
+	ingroup_data = data[data[:, 0] == 1.0]
+	# Mean positive GSC scores
+	mpgsc_scores = list(zip(range(lead_cols-1, num_cols), [np.mean([x for x in np.nan_to_num(gene_col) if x > 0] if len([x for x in np.nan_to_num(gene_col) if x > 0]) > 0 else [0]) for gene_col in ingroup_data.transpose()[lead_cols-1:]], header[lead_cols:]))
+	mpgsc_scores.sort(key=lambda tup: tup[1], reverse=True)
+
+
+	if m_grid:
+		data = data[:, list(range(0, lead_cols - 1)) + [val[0] for val in mpgsc_scores[0:gene_limit]]]
+		header = [val[2] for val in mpgsc_scores[0:gene_limit]]
+	else:
+		data = data[:, list(range(0, lead_cols - 1)) + [val[0] for val in ssq_scores[0:gene_limit]]]
+		header = header[1:lead_cols] + [val[2] for val in ssq_scores[0:gene_limit]]
+
+	# Sort rows by expit of predicted value
+	expit = [1/(1 + math.exp(-x)) for x in data[:, 1]]
+	pr = [(x - 0.5)/(max(expit) - 0.5) for x in expit]
+	pr = [x if x > 0 else 0 for x in pr]
+	sorted_rows = list(zip(range(0, num_rows), pr, data[:, 0]))
+	sorted_rows.sort(key=lambda tup: (tup[2], tup[1]), reverse=True)
+	data = data[[val[0] for val in sorted_rows]]
+	seqid_list = ["{} ({:0.2f})".format((val)[0], val[1]) for val in zip(seqid_list, pr)]
+
+	# temp1 = list(range(lead_cols-1, len(data[0])))
+	# print(temp1)
+	# print(len(temp1))
+	# print(len(data))
+	# print(len(data[0]))
+
+	if m_grid:
+		data = data[0:sum([1 for val in data[:, 0] if float(val)>0.99]), list(range(lead_cols-1, len(data[0])))]
+
+	seqid_list = [seqid_list[val[0]] for val in sorted_rows[0:len(data)]]
+
+	# Reset dimensions if truncation has occurred.
+	num_rows, num_cols = data.shape
+
+	# draw gridlines
+	xtick_width = 20
+	ytick_width = 20
+	fig, ax = plt.subplots(figsize=(num_cols * 0.1, num_rows * 0.1))
+	label_size = 3
+	cell_label_size = 2.0
+	DPI = 600
+	ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=0.2)
+	# Make red-yellow-green color map with NaN=blue
+	cmap = copy.copy(mpl.cm.get_cmap("RdYlGn"))
+	cmap.set_bad(color='lightskyblue')
+	# Apply color map to first three columns, and then separately to the rest of the columns
+	if m_grid:
+		ax.imshow(data[:, :], cmap=cmap, norm=TwoSlopeNorm(0), extent=(0, num_cols * xtick_width, num_rows * ytick_width, 0))
+	else:
+		# ax.imshow(data[:, 0:3], cmap=cmap, norm=TwoSlopeNorm(0), extent=(0, (lead_cols - 1) * xtick_width, num_rows * ytick_width, 0))
+		# ax.imshow(data[:, 3:], cmap=cmap, norm=TwoSlopeNorm(0), extent=((lead_cols - 1)*xtick_width, num_cols*xtick_width, num_rows*ytick_width, 0))
+		#for i in range(0, lead_cols-1):
+		for i in range(0, 2):
+			ax.imshow(data[:, i:i+1], cmap=cmap, norm=TwoSlopeNorm(0), extent=(i*xtick_width, (i+1) * xtick_width, num_rows * ytick_width, 0))
+		ax.imshow(data[:, lead_cols-1:], cmap=cmap, norm=TwoSlopeNorm(0), extent=((lead_cols - 1)*xtick_width, num_cols * xtick_width, num_rows * ytick_width, 0))
+	ax.set_xticks(np.arange(0, num_cols * xtick_width, xtick_width));
+	ax.set_xticklabels(header, rotation=90, ha='left', size=label_size)
+	ax.set_yticks(np.arange(0, num_rows * ytick_width, ytick_width));
+	ax.set_yticklabels(seqid_list, va="top", size=label_size)
+	ax.set_xlabel('Alignment Names', fontsize=label_size*1.25)
+	ax.set_ylabel('Sequence IDs', fontsize=label_size*1.25)
+	ax.set_title('Group Contribution Weights', fontsize=label_size*1.75)
+	for (i, j), z in np.ndenumerate(data):
+		if not m_grid:
+			if j < lead_cols - 1:
+				ax.text((j+0.5) * xtick_width, (i+0.5)*ytick_width, '{:0.1f}'.format(z), ha='center', va='center', size=cell_label_size)
+			else:
+				ax.text((j + 0.5) * xtick_width, (i + 0.5) * ytick_width, '{:0.2f}'.format(z), ha='center', va='center', size=cell_label_size)
+		elif np.isnan(z):
+			ax.text((j + 0.5) * xtick_width, (i + 0.5) * ytick_width, 'x', ha='center', va='center', size=cell_label_size)
+	if output is None:
+		output = os.path.join(os.path.dirname(predictions_table),"{}.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
+	plt.savefig(output, dpi=DPI, bbox_inches='tight')
+	plt.close()
+	roc = get_roc(data[:,0], data[:,1])
+	roc_output = os.path.join(os.path.dirname(predictions_table),"{}_ROC.png".format(os.path.splitext(os.path.basename(predictions_table))[0]))
+	plt.plot(roc[1], roc[0])
+	plt.savefig(roc_output, dpi=DPI, bbox_inches='tight')
+	return output
+
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description="Gene contribution visualizer for ESL pipeline.")
 	parser.add_argument("predictions_table", help="Table of gene prediction contribution values to sort and color.", type=str)
@@ -261,5 +197,6 @@ if __name__ == '__main__':
 	parser.add_argument("--prediction_idx", help="1-based index of prediction column.", type=int, default=3)
 	parser.add_argument("--output", help="Output image file.", type=str, default=None)
 	parser.add_argument("--threshold", help="Drop columns with sum of squares below threshold value.", type=float, default=0)
+	parser.add_argument("--m_grid", help="Make DrPhylo output.", action='store_true', default=False)
 	args = parser.parse_args()
-	main(args.predictions_table, args.lead_cols, args.response_idx, args.prediction_idx, args.output, args.threshold)
+	main(args.predictions_table, args.lead_cols, args.response_idx, args.prediction_idx, args.output, args.threshold, m_grid=args.m_grid)
