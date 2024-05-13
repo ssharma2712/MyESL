@@ -1,8 +1,12 @@
-# Evolutionary Sparse Learning (ESL) #
+# Evolutionary Sparse Learning with MyESL #
+
+## Introduction ##
+MyESL is a set of programs written in C++ and Python designed to build an evolutionary sparse learning model for a phylogenetic hypothesis or binary classes of species with or without a phenotype. MyESL uses sparse group lasso regression to optimize weights for each position in the sequence alignments, quantifying the strength of association between a position and the hypothesis/class used in the analysis. MyESL also performs pre-possing of input data and processes ESL model outputs for further biological discoveries. MyESL is currently available as a standalone software compatible with Windows and Linux operating systems. Moreover, it offers the option of installation via a Python environment to conduct ESL analysis. 
+
 
 ## Table of Contents ##
 
-1. [Description](#description)
+1. [Introduction](#introduction)
 2. [SGLASSO](#sglasso)
 3. [Requirements](#requirements)
 4. [Setup](#setup)
@@ -10,8 +14,7 @@
 6. [Output](#output)
 7. [C++ Components](#individual-components)
 
-## Description ##
-ESL (Evolutionary Sparse Learning) is a set of programs written in c++ provided with a python pipeline, designed to investigate various evolutionary/phylogenetic hypotheses, by applying the sparse group lasso penalty to regression optimization problems relating the provided hypothesis to a set of provided sequence alignments. ESL efficiently highlights genes, and positions within those genes, that show the greatest level of importance/discriminatory power in terms of a specific evolutionary hypothesis.
+
 
 
 ## SGLASSO ##
