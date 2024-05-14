@@ -186,13 +186,13 @@ You can install these libraries using pip:
 To perform DrPhylo analysis, get the ESL package using the following on the command line:
 
 	git clone -b grid_search https://github.com/kumarlabgit/MyESL MyESL
-	cd ESL
+	cd MyESL
 	bash setup.sh
 
 #### MyESL pipeline uses the same directives as MyESL.exe. To perform an analysis using the example dataset, only replacing `MyESL.exe` with `MyESL.py`
 
 ## References ##
-If you use DrPhylo in your research, please cite our articles:
+If you use MyESL in your research, please cite our articles:
 
 1. Kumar, S. and Sharma, S (2021). Evolutionary Sparse Learning for Phylogenomics, Molecular Biology and Evolution, Volume 38, Issue 11, November 2021, Pages 4674–4682.
 2. Sharma, S. & Kumar, S. (2024). Discovering fragile clades and causal sequences in phylogenomics by evolutionary sparse learning. (In review)
