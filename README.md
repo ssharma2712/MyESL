@@ -165,6 +165,11 @@ Note: l1 and l2 refer to site and group sparsity parameters used for model build
 ```
 <br />
 
+### DrPhylo analysis using MyESL
+
+Users can perform DrPhylo analysis using MyESL. Instructions and Outputs for DrPhylo analysis will be found at [DrPhylo](https://github.com/kumarlabgit/MyESL/tree/DrPhylo). 
+
+
 ## Table of Contents ##
 
 1. [Introduction](#introduction)
