@@ -137,7 +137,31 @@ GSS_{clade_ID}.txt         : A tab-separated text file containing group ID and n
 HSS_{clade_ID}.txt         : A text file containing hypothesis sparsity scores.
 SPS_SPP_{clade_ID}.txt     : A tab-separated text file containing species name, regression response, species prediction score, and prediction probability. 
 
+```
+<br />
 
+#### Output files from multiple ESL models
+
+When grid options for penalty parameters are used, MyESL produces multiple ESL models and other sparsity scores. In addition to a single model output for each lambda pair, MyESL outputs a summary of all single models. 
+
+<br />
+
+```
+ESL_model_{clade_ID}_l1_l2.txt   : A tab-separated text file containing allele at each position in a group and non-zero beta values estimated from sparse group lasso analysis. 
+
+BSS_{clade_ID}_l1_l2.txt         : A tab-separated text file containing allele at each position in a group and non-zero bit sparsity score.
+PSS_{clade_ID}_l1_l2.txt         : A tab-separated text file containing position ID in a group and non-zero position sparsity scores.
+GSS_{clade_ID}_l1_l2.txt         : A tab-separated text file containing group ID and non-zero group sparsity scores.
+HSS_{clade_ID}_l1_l2.txt         : A text file containing hypothesis sparsity scores.
+SPS_SPP_{clade_ID}_l1_l2.txt     : A tab-separated text file containing species name, regression response, species prediction score, and prediction probability. 
+
+BSS_{clade_ID}_summary.txt         : A tab-separated text file containing allele at each position in a group and non-zero bit sparsity score.
+PSS_{clade_ID}_summary.txt         : A tab-separated text file containing position ID in a group and non-zero position sparsity scores.
+GSS_{clade_ID}_summary.txt         : A tab-separated text file containing group ID and non-zero group sparsity scores.
+HSS_{clade_ID}_summary.txt         : A text file containing hypothesis sparsity scores.
+SPS_SPP_{clade_ID}_summary.txt     : A tab-separated text file containing species name, regression response, species prediction score, and prediction probability. 
+
+Note: l1 and l2 refer to site and group sparsity parameters used for model building in grid search.
 ```
 <br />
 
