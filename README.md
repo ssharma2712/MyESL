@@ -81,8 +81,8 @@ Users can also specify other options in MyESL for processing the input data, bui
 <br />
 
 ```
---labda1 <float>
---lambda2 <float>
+--lambda1 <float>                    : The site sparsity parameter that ranges from 0 to 1. When not specified, the default is 0.1. It is required for building a single-clade model.
+--lambda2 <float>                    : The gene sparsity parameter ranges from 0 to 1, and the default is 0.1 when not specified. It is required for building a single-clade model.
 --lamda1_grid <min, max, step>       : This option allows users to set the range for the site sparsity parameter. The site sparsity grid is defined by a string of float numbers min, max, step_size which range from 0 to 1.
                                        For example, --lamda1_range 0.1, 0.9, 0.1. This option must be used with --lamda2_range.  
 
@@ -92,10 +92,10 @@ Users can also specify other options in MyESL for processing the input data, bui
 --min_groups <int>                   : This option allows users to set the minimum number of genes included in the multi-gene ESL models and helps early stopping in the grid search over the sparsity parameter space.
                                        It takes a value greater than zero (0) and builds models containing more or equal numbers of groups in the model.
 
---group_wt <string>                : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
+--group_wt <string>                  : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
                                       Class balancing in DrPhylo is performed by phylogenetic aware sampling <phylo> when the "--tree" option provides the phylogenetic hypothesis. DrPhylo also makes a balance between classes 
                                       by using inverse weights using the option <weight>. 
---output <string>                   : The name of the output directory where all results from DrPhylo analysis will be stored. The program creates this directory automatically. 
+--output <string>                    : The name of the output directory where all results from DrPhylo analysis will be stored. The program creates this directory automatically. 
 ```
 <br />	
 
