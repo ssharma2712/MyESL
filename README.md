@@ -122,6 +122,25 @@ Users can also specify other options in MyESL for processing the input data, bui
 
 ### MyESL output files
 
+MyESL produces multiple output files based on different user analysis directives. 
+
+#### Output files from a single ESL model
+
+<br />
+
+```
+ESL_model_{clade_ID}.txt   : A tab-separated text file containing allele at each position in a group and non-zero beta values estimated from sparse group lasso analysis. 
+
+BSS_{clade_ID}.txt         : A tab-separated text file containing allele at each position in a group and non-zero bit sparsity score.
+PSS_{clade_ID}.txt         : A tab-separated text file containing position ID in a group and non-zero position sparsity scores.
+GSS_{clade_ID}.txt         : A tab-separated text file containing group ID and non-zero group sparsity scores.
+HSS_{clade_ID}.txt         : A text file containing hypothesis sparsity scores.
+SPS_SPP_{clade_ID}.txt     : A tab-separated text file containing species name, regression response, species prediction score, and prediction probability. 
+
+
+```
+<br />
+
 ## Table of Contents ##
 
 1. [Introduction](#introduction)
