@@ -101,12 +101,14 @@ Users can also specify other options in MyESL for processing the input data, bui
 --group_wt <filename.txt>            : MyESL uses the square root of the number of bit columns for groups as group weights by default. Users can provide group weights via a text file (<filename.txt>), a tab-separated two-column file.
                                        The first column contains group names, and the second contains corresponding group weights.
 
---kfold <int>                        : This directive allows users to build multiple ESL models using k-fold cross-validation. For example, if k-fold is set to 5, 80% of rows are used in model training, and 20% of rows are withheld for validation 
+--kfold <int>                        : This directive allows users to build multiple ESL models using k-fold cross-validation. For example, if k-fold is set to 5, 80% of rows are used in model training, and 20% of rows are withheld for validation.
+
+--no_group_penalty                   : This directive allows users to perform LASSO regression without group penalty. The LASSO regression without group penalty is also performed when a single FastA file is provided as input. 
 
 ```
 <br />	
 
-#### Model outputs:
+#### Processing ESL-model outputs:
 
 <br />
 
@@ -115,9 +117,10 @@ Users can also specify other options in MyESL for processing the input data, bui
 
 --stats_out <BPGHS>                 : MyESL processes the ESL model and outputs, Bit Sparsity Scores (<B>), Position Sparsity Scores (<P>), Gene Sparsity Scores (<G>), Hypothesis Sparsity Scores (<H>), and
                                       Species Sparsity Scores and Prediction Probability (<S>). Users can output multiple files using multiple inputs like <BPS>. Details of these scores can be found in reference #1.  
-
 ```
 <br />	
+
+### MyESL output files
 
 ## Table of Contents ##
 
@@ -134,7 +137,7 @@ Users can also specify other options in MyESL for processing the input data, bui
 
 ## SGLASSO ##
 
-Applying the sparse group Lasso penalty yields a solution that achieves the within- and between- group sparsity simultaneously. That is, many feature groups are exactly zero (thus not selected) and within the non-zero (thus selected) feature groups, some features are also exactly zero. The simultaneous within- and between- group sparsity makes sparse group Lasso ideal for applications where we are interested in identifying important groups as well as important features within the selected groups.
+Applying the sparse group Lasso penalty yields a solution that simultaneously achieves the within- and between-group sparsity. That is, many feature groups are exactly zero (thus not selected) and within the non-zero (thus selected) feature groups, some features are also exactly zero. The simultaneous within- and between- group sparsity makes sparse group Lasso ideal for applications where we are interested in identifying important groups as well as important features within the selected groups.
 
 The algorithm can optimize feature weights under either a least squares or logistic regression model. Additionally, the overlapping variants of those programs can accept input where feature groups overlap.
 
