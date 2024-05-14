@@ -169,6 +169,36 @@ Note: l1 and l2 refer to site and group sparsity parameters used for model build
 
 Users can perform DrPhylo analysis using MyESL. Instructions and Outputs for DrPhylo analysis will be found at [DrPhylo](https://github.com/kumarlabgit/MyESL/tree/DrPhylo). 
 
+### Installation of MyESL into Python ##
+
+To run MyESL, you will need Python 3.8 or later installed, as well as the following Python libraries:
+```R
+numpy
+biopython
+matplotlib
+pandas
+```
+
+You can install these libraries using pip:
+
+`pip install biopython numpy pandas matplotlib`
+
+To perform DrPhylo analysis, get the ESL package using the following on the command line:
+
+	git clone -b grid_search https://github.com/kumarlabgit/MyESL MyESL
+	cd ESL
+	bash setup.sh
+
+ #### MyESL pipeline uses the same directives as MyESL.exe. To perform an analysis using the example dataset, only replacing `MyESL.exe` with `MyESL.py`
+
+## References ##
+If you use DrPhylo in your research, please cite our articles:
+
+1. Kumar, S. and Sharma, S (2021). Evolutionary Sparse Learning for Phylogenomics, Molecular Biology and Evolution, Volume 38, Issue 11, November 2021, Pages 4674–4682.
+2. Sharma, S. & Kumar, S. (2024). Discovering fragile clades and causal sequences in phylogenomics by evolutionary sparse learning. (In review)
+3. Sanderford et al., (2024).  MyESL: A software for evolutionary sparse learning in molecular phylogenetics and genomics (In preparation).
+
+
 
 ## Table of Contents ##
 
