@@ -99,8 +99,9 @@ Users can also specify other options in MyESL for processing the input data, bui
                                        It takes a value greater than zero (0) and builds models containing more or equal numbers of groups in the model.
 
 --group_wt <filename.txt>            : MyESL uses the square root of the number of bit columns for groups as group weights by default. Users can provide group weights via a text file (<filename.txt>), a tab-separated two-column file.
-                                       The first column contains group names, and the second contains corresponding group weights. 
---kfold <int>                        : This directive allows users to build multiple ESL models using k-fold cross-validation. For example, if k-fold is set to 5, 80% of the taxa are used in model training, while 20% of taxa are withheld for validation 
+                                       The first column contains group names, and the second contains corresponding group weights.
+
+--kfold <int>                        : This directive allows users to build multiple ESL models using k-fold cross-validation. For example, if k-fold is set to 5, 80% of rows are used in model training, and 20% of rows are withheld for validation 
 
 ```
 <br />	
@@ -110,23 +111,10 @@ Users can also specify other options in MyESL for processing the input data, bui
 <br />
 
 ```
---clade_list <string1, string2,...>  : Users can test multiple phylogenetic hypotheses when the input phylogenetic tree contains multiple clade IDs. This option must be used with "--tree" option.
+--output <string>                   : The name of the output directory where all results from MyESL analysis will be stored. The program creates an output directory automatically if it is not specified.
 
---gen_clade_id <int, int>            : Users can generate multiple hypotheses when the input phylogeny contains no clade ID. The size of the clade is determined by the input integers defining the upper and lower limits
-                                       of clade size, respectively.   
---lamda1_grid <min, max, step>       : This option allows users to set the range for the site sparsity parameter. The site sparsity grid is defined by a string of float numbers min, max, and step_size, which range from 0 to 1.
-                                       For example, --lamda1_range 0.1, 0.9, 0.1. This option must be used with --lamda2_range.  
-
---lamda2_grid <min, max, step>       : This option allows users to set the range for the group sparsity parameter. The group sparsity grid is defined by a string of float numbers min, max, and step_size, which range from 0 to 1.
-                                       For example, --lamda2_range 0.1, 0.9, 0.1. This option must be used with --lamda1_range. 
-
---min_groups <int>                   : This option allows users to set the minimum number of genes included in the multi-gene ESL models and helps early stopping in the grid search over the sparsity parameter space.
-                                       It takes a value greater than zero (0) and builds models containing more or equal numbers of groups in the model.
-
---class_bal <string>                : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
-                                      Class balancing in DrPhylo is performed by phylogenetic aware sampling <phylo> when the "--tree" option provides the phylogenetic hypothesis. DrPhylo also makes a balance between classes 
-                                      by using inverse weights using the option <weight>. 
---output <string>                   : The name of the output directory where all results from DrPhylo analysis will be stored. The program creates this directory automatically.
+--stats_out <BPGHS>                 : MyESL processes the ESL model and outputs, Bit Sparsity Scores (<B>), Position Sparsity Scores (<P>), Gene Sparsity Scores (<G>), Hypothesis Sparsity Scores (<H>), and
+                                      Species Sparsity Scores and Prediction Probability (<S>). Users can output multiple files using multiple inputs like <BPS>. Details of these scores can be found in reference #1.  
 
 ```
 <br />	
