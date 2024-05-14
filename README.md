@@ -66,9 +66,9 @@ Users can also specify other options in MyESL for processing the input data, bui
 --gen_clade_list <int, int>         : Users can generate multiple hypotheses when the input phylogeny contains no clade ID. The size of the clade is determined by the input integers defining the upper and lower limits
                                       of clade size, respectively.
    
---class_bal <string>                : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
-                                      Class balancing in DrPhylo is performed by phylogenetic aware sampling <phylo> when the "--tree" option provides the phylogenetic hypothesis. DrPhylo also makes a balance between classes 
-                                      by using inverse weights using the option <weight>.
+--class_bal <string>                : MyESL performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
+                                      Class balancing in MyESL is performed by phylogenetic aware sampling <phylo> when the "--tree" option provides the phylogenetic hypothesis. MyESL also makes a balance between classes 
+                                      by using inverse weights using the option <weight>. Upsampling and downsampling between classes can also be performed in MyESL using <up> and <down> options. 
 
 --data_type <string>                : <nucleotide> informs MyESL to treat A, T, C, G, and U as valid characters without case sensitivity, and all other characters will be treated as missing data.
                                       <protein> option treats all unambiguous IUPAC amino acid letters (case insensitive) as valid characters.
@@ -98,10 +98,9 @@ Users can also specify other options in MyESL for processing the input data, bui
 --min_groups <int>                   : This option allows users to set the minimum number of genes included in the multi-gene ESL models and helps early stopping in the grid search over the sparsity parameter space.
                                        It takes a value greater than zero (0) and builds models containing more or equal numbers of groups in the model.
 
---group_wt <string>                  : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
-                                      Class balancing in DrPhylo is performed by phylogenetic aware sampling <phylo> when the "--tree" option provides the phylogenetic hypothesis. DrPhylo also makes a balance between classes 
-                                      by using inverse weights using the option <weight>. 
---output <string>                    : The name of the output directory where all results from DrPhylo analysis will be stored. The program creates this directory automatically.
+--group_wt <filename.txt>            : MyESL uses the square root of the number of bit columns for groups as group weights by default. Users can provide group weights via a text file (<filename.txt>), a tab-separated two-column file.
+                                       The first column contains group names, and the second contains corresponding group weights. 
+--kfold <int>                        : This directive allows users to build multiple ESL models using k-fold cross-validation. For example, if k-fold is set to 5, 80% of the taxa are used in model training, while 20% of taxa are withheld for validation 
 
 ```
 <br />	
