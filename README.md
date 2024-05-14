@@ -61,16 +61,18 @@ Users can also specify other options in MyESL for processing the input data, bui
 <br />
 
 ```
---clade_list <string1, string2,...>  : Users can test multiple phylogenetic hypotheses when the input phylogenetic tree contains multiple clade IDs. This option must be used with "--tree" option.
+--clade_list <string1, string2,...> : Users can test multiple phylogenetic hypotheses when the input phylogenetic tree contains multiple clade IDs. This option must be used with "--tree" option.
 
---gen_clade_list <int, int>          : Users can generate multiple hypotheses when the input phylogeny contains no clade ID. The size of the clade is determined by the input integers defining the upper and lower limits
-                                       of clade size, respectively.   
+--gen_clade_list <int, int>         : Users can generate multiple hypotheses when the input phylogeny contains no clade ID. The size of the clade is determined by the input integers defining the upper and lower limits
+                                      of clade size, respectively.   
 --class_bal <string>                : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
                                       Class balancing in DrPhylo is performed by phylogenetic aware sampling <phylo> when the "--tree" option provides the phylogenetic hypothesis. DrPhylo also makes a balance between classes 
                                       by using inverse weights using the option <weight>. 
---output <string>                   : The name of the output directory where all results from DrPhylo analysis will be stored. The program creates this directory automatically.
---data_type <string>                :
---bit_ct <string>                   : One can choose to drop all bit-columns in which the bit 1 appears fewer than a certain number of times
+--data_type <string>                : <nucleotide> informs MyESL to treat A, T, C, G, and U as valid characters without case sensitivity, and all other characters will be treated as missing data.
+                                      <protein> option treats all unambiguous IUPAC amino acid letters (case insensitive) as valid characters.
+                                      <molecular> option provides a way to use both nucleotide and acid letters as valid characters.
+                                      <universal> option is used as default, which allows the analysis of presence/absence (0/1) data.   
+--bit_ct <int>                      : One can choose to drop all bit-columns in which the bit 1 appears fewer than a certain number of times
 ```
 <br />	
 
@@ -79,7 +81,8 @@ Users can also specify other options in MyESL for processing the input data, bui
 <br />
 
 ```
-
+--labda1 <float>
+--lambda2 <float>
 --lamda1_grid <min, max, step>       : This option allows users to set the range for the site sparsity parameter. The site sparsity grid is defined by a string of float numbers min, max, step_size which range from 0 to 1.
                                        For example, --lamda1_range 0.1, 0.9, 0.1. This option must be used with --lamda2_range.  
 
@@ -89,7 +92,7 @@ Users can also specify other options in MyESL for processing the input data, bui
 --min_groups <int>                   : This option allows users to set the minimum number of genes included in the multi-gene ESL models and helps early stopping in the grid search over the sparsity parameter space.
                                        It takes a value greater than zero (0) and builds models containing more or equal numbers of groups in the model.
 
---class_bal <string>                : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
+--group_wt <string>                : DrPhylo also performs class balancing, a common practice in supervised machine learning. Class balancing helps balance the number of species inside and outside the focal clade of interest.
                                       Class balancing in DrPhylo is performed by phylogenetic aware sampling <phylo> when the "--tree" option provides the phylogenetic hypothesis. DrPhylo also makes a balance between classes 
                                       by using inverse weights using the option <weight>. 
 --output <string>                   : The name of the output directory where all results from DrPhylo analysis will be stored. The program creates this directory automatically. 
